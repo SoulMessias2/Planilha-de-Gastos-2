@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -27,17 +28,17 @@
         }
 
         html, body {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: var(--bg-color);
             color: var(--text-main);
-            overflow-x: hidden;
+            overflow: hidden;
             margin: 0;
             padding: 0;
         }
 
         .container {
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -53,6 +54,7 @@
             padding: 10px 20px;
             border-bottom: 1px solid var(--border-line);
             width: 100%;
+            flex-shrink: 0;
         }
 
         .header-controls {
@@ -71,6 +73,7 @@
             align-items: center;
             gap: 10px;
             width: 100%;
+            flex-shrink: 0;
         }
 
         .filter-group {
@@ -128,10 +131,10 @@
 
         .table-container {
             flex: 1;
-            width: 100vw;
+            width: 100%;
             background: var(--surface-color);
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
         }
 
         table {
@@ -444,129 +447,4 @@
 
         function preencherSelectModal(id, setOpcoes, textoPadrao) {
             const select = document.getElementById(id);
-            select.innerHTML = `<option value="">${textoPadrao}</option>`;
-            Array.from(setOpcoes).sort().forEach(op => {
-                const opt = document.createElement('option');
-                opt.value = op;
-                opt.innerText = op;
-                select.appendChild(opt);
-            });
-        }
-
-        function renderizarTabela() {
-            const tbody = document.getElementById('tableBody');
-            const thead = document.getElementById('tableHeader');
-            const cabecalhos = dadosBrutos[0];
-            thead.innerHTML = `<tr>${cabecalhos.map(col => `<th>${col}</th>`).join('')}</tr>`;
-
-            const textoPesquisa = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-            const filtroCat = document.getElementById('filtroCategoria').value;
-            const filtroTip = document.getElementById('filtroTipo').value;
-            const filtroSta = document.getElementById('filtroStatus').value;
-            const inputInicio = document.getElementById('dataInicio').value;
-            const inputFim = document.getElementById('dataFim').value;
-            const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
-            const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
-
-            let linhasFiltradas = dadosBrutos.slice(1).filter(row => {
-                if (dInicio || dFim) {
-                    const dtLinha = parseDataParaDateObj(row[0]);
-                    if (dtLinha) {
-                        if (dInicio && dtLinha < dInicio) return false;
-                        if (dFim && dtLinha > dFim) return false;
-                    } else { return false; }
-                }
-                if (filtroCat && row[1] && row[1].toString().trim() !== filtroCat) return false;
-                if (filtroTip && row[4] && row[4].toString().trim() !== filtroTip) return false;
-                if (filtroSta !== "") {
-                    const valStatusRow = row[5] !== null && row[5] !== undefined ? row[5].toString().trim() : "";
-                    if (filtroSta === "VAZIO_VAL") {
-                        if (valStatusRow !== "") return false;
-                    } else {
-                        if (valStatusRow !== filtroSta) return false;
-                    }
-                }
-                if (textoPesquisa) {
-                    const linhaMatch = row.some(cell => {
-                        if (cell === null || cell === undefined) return false;
-                        return cell.toString().toLowerCase().includes(textoPesquisa);
-                    });
-                    if (!linhaMatch) return false;
-                }
-                return true;
-            });
-
-            tbody.innerHTML = linhasFiltradas.map((row, index) => {
-                const trId = `row-${index}`;
-                const isSelected = linhasSelecionadasIndices.has(index) ? 'linha-selecionada' : '';
-                return `<tr id="${trId}" class="${isSelected}" onclick="selecionarLinha(${index}, event)">
-                    ${row.map((cell, idx) => {
-                        const val = (idx === 0) ? formatarDataExibicao(cell) : (cell !== null && cell !== undefined ? cell : '');
-                        return `<td title="${val}">${val}</td>`;
-                    }).join('')}
-                </tr>`;
-            }).join('');
-        }
-
-        function selecionarLinha(index, event) {
-            const isCtrlPressed = event.ctrlKey || event.metaKey;
-            const isShiftPressed = event.shiftKey;
-            if (isShiftPressed && ultimoIndiceClicado !== null) {
-                const inicio = Math.min(ultimoIndiceClicado, index);
-                const fim = Math.max(ultimoIndiceClicado, index);
-                if (!isCtrlPressed) { linhasSelecionadasIndices.clear(); }
-                for (let i = inicio; i <= fim; i++) { linhasSelecionadasIndices.add(i); }
-            } else if (isCtrlPressed) {
-                if (linhasSelecionadasIndices.has(index)) { linhasSelecionadasIndices.delete(index); }
-                else { linhasSelecionadasIndices.add(index); }
-                ultimoIndiceClicado = index;
-            } else {
-                linhasSelecionadasIndices.clear();
-                linhasSelecionadasIndices.add(index);
-                ultimoIndiceClicado = index;
-            }
-            renderizarTabela();
-        }
-
-        function abrirModal() {
-            document.getElementById('dataForm').reset();
-            document.getElementById('modalOverlay').style.display = 'flex';
-        }
-
-        function fecharModal() {
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        async function salvarRegistro(event) {
-            event.preventDefault();
-            const dataInput = document.getElementById('fData').value;
-            let dataFormatada = dataInput;
-            if (dataInput && dataInput.includes('-')) {
-                const p = dataInput.split('-');
-                dataFormatada = `${p[2]}/${p[1]}/${p[0]}`;
-            }
-            const payload = {
-                col1: dataFormatada,
-                col2: document.getElementById('fCategoria').value,
-                col3: document.getElementById('fDescritivo').value,
-                col4: document.getElementById('fValor').value,
-                col5: document.getElementById('fTipo').value,
-                col6: document.getElementById('fStatus').value
-            };
-            document.getElementById('statusNuvem').innerText = "Salvando...";
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                fecharModal();
-                setTimeout(carregarDados, 1200);
-            } catch (err) {
-                console.error("Erro ao salvar:", err);
-                alert("Erro ao salvar dados.");
-            }
-        }
-    </script>
-</body>
-</html>
+            select.innerHTML =
