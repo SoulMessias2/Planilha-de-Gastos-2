@@ -27,7 +27,6 @@
             user-select: none;
         }
 
-        /* Garante tela cheia absoluta sem margens */
         html, body {
             width: 100vw;
             height: 100vh;
@@ -63,6 +62,40 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
+        }
+
+        .resumo-bar {
+            display: flex;
+            gap: 15px;
+            padding: 10px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-line);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .resumo-card {
+            background: #ffffff;
+            border: 1px solid var(--border-line);
+            padding: 8px 14px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 180px;
+        }
+
+        .resumo-card .card-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .resumo-card .card-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
         }
 
         .filters-bar {
@@ -130,7 +163,6 @@
             font-size: 0.75rem;
         }
 
-        /* Ocupa toda a largura da tela preenchendo as bordas */
         .table-container {
             flex: 1;
             width: 100vw;
@@ -161,6 +193,12 @@
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: middle;
+        }
+
+        /* Alinhamento estilo Excel para a coluna de Valores */
+        th:nth-child(4), td:nth-child(4) {
+            text-align: right;
+            padding-right: 24px;
         }
 
         thead th {
@@ -246,9 +284,24 @@
         <header>
             <div class="header-controls">
                 <span id="statusNuvem">Sincronizando...</span>
-                <button class="btn" onclick="abrirModal()">+ Adicionar Item</button>
+                <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
             </div>
         </header>
+
+        <div class="resumo-bar">
+            <div class="resumo-card">
+                <span class="card-title">Soma Total</span>
+                <span class="card-value" id="resumoSomaTotal">R$ 0,00</span>
+            </div>
+            <div class="resumo-card">
+                <span class="card-title">Qtd. Lançamentos</span>
+                <span class="card-value" id="resumoQtdLançamentos">0</span>
+            </div>
+            <div class="resumo-card">
+                <span class="card-title">Total Status "C"</span>
+                <span class="card-value" id="resumoSomaStatusC">R$ 0,00</span>
+            </div>
+        </div>
 
         <div class="filters-bar">
             <div class="filter-group">
@@ -274,6 +327,9 @@
                 <span>até</span>
                 <input type="date" id="dataFim" onchange="renderizarTabela()">
             </div>
+            <!-- Botões de Atalho Solicitados -->
+            <button class="btn btn-sm" onclick="filtrarMesAtual()">📅 Mês Atual</button>
+            <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
             <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
         </div>
 
@@ -286,14 +342,15 @@
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal (Adicionar / Editar) -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
-                <h2>Adicionar Novo Item</h2>
+                <h2 id="modalTitulo">Adicionar Novo Item</h2>
                 <button class="btn-outline btn btn-sm" onclick="fecharModal()">✕</button>
             </div>
             <form id="dataForm" onsubmit="salvarRegistro(event)">
+                <input type="hidden" id="fIndiceOriginal">
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Data</label>
@@ -322,7 +379,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
-                    <button type="submit" class="btn">Salvar no Topo</button>
+                    <button type="submit" class="btn" id="btnSalvarModal">Salvar no Topo</button>
                 </div>
             </form>
         </div>
@@ -333,6 +390,20 @@
         let dadosBrutos = [];
         let linhasSelecionadasIndices = new Set();
         let ultimoIndiceClicado = null;
+
+        function converterParaNumero(valor) {
+            if (valor === null || valor === undefined || valor === '') return 0;
+            if (typeof valor === 'number') return valor;
+            let str = valor.toString().trim();
+            str = str.replace(/R\$/g, '').replace(/\s/g, '');
+            if (str.includes(',') && str.includes('.')) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else if (str.includes(',')) {
+                str = str.replace(',', '.');
+            }
+            const num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
 
         function parseDataParaDateObj(valor) {
             if (!valor) return null;
@@ -359,6 +430,17 @@
             const mes = String(dt.getMonth() + 1).padStart(2, '0');
             const ano = dt.getFullYear();
             return `${dia}/${mes}/${ano}`;
+        }
+
+        function formatarMoedaExcel(valor) {
+            const num = converterParaNumero(valor);
+            const numeroFormatado = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return `<span style="display:flex; justify-content:space-between; width:100%;"><span>R$</span><span>${numeroFormatado}</span></span>`;
+        }
+
+        function formatarSimples(val) {
+            const n = converterParaNumero(val);
+            return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
         async function carregarDados() {
@@ -437,6 +519,31 @@
             renderizarTabela();
         }
 
+        // Função do Botão Mês Atual
+        function filtrarMesAtual() {
+            const agora = new Date();
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const ultimoDia = new Date(ano, agora.getMonth() + 1, 0).getDate();
+            
+            document.getElementById('dataInicio').value = `${ano}-${mes}-01`;
+            document.getElementById('dataFim').value = `${ano}-${mes}-${ultimoDia}`;
+            renderizarTabela();
+        }
+
+        // Função do Botão Filtrar Status (C)
+        function filtrarStatusC() {
+            const selectStatus = document.getElementById('filtroStatus');
+            // Procura a opção correspondente à letra C ou seleciona diretamente
+            for (let i = 0; i < selectStatus.options.length; i++) {
+                if (selectStatus.options[i].value.toUpperCase() === 'C') {
+                    selectStatus.selectedIndex = i;
+                    break;
+                }
+            }
+            renderizarTabela();
+        }
+
         function preencherOpcoesFormularioModal() {
             const catSet = new Set(), tipoSet = new Set();
             dadosBrutos.slice(1).forEach(row => {
@@ -473,7 +580,8 @@
             const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
             const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
 
-            let linhasFiltradas = dadosBrutos.slice(1).filter(row => {
+            let linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => ({ row, originalIndex })).filter(item => {
+                const row = item.row;
                 if (dInicio || dFim) {
                     const dtLinha = parseDataParaDateObj(row[0]);
                     if (dtLinha) {
@@ -501,13 +609,40 @@
                 return true;
             });
 
-            tbody.innerHTML = linhasFiltradas.map((row, index) => {
-                const trId = `row-${index}`;
-                const isSelected = linhasSelecionadasIndices.has(index) ? 'linha-selecionada' : '';
-                return `<tr id="${trId}" class="${isSelected}" onclick="selecionarLinha(${index}, event)">
+            let somaTotal = 0;
+            let somaStatusC = 0;
+
+            linhasFiltradasComIndice.forEach(item => {
+                const row = item.row;
+                const valNum = converterParaNumero(row[3]);
+                somaTotal += valNum;
+                const statusStr = (row[5] || '').toString().trim().toUpperCase();
+                if (statusStr === 'C' || statusStr.includes('C')) {
+                    somaStatusC += valNum;
+                }
+            });
+
+            document.getElementById('resumoSomaTotal').innerText = formatarSimples(somaTotal);
+            document.getElementById('resumoQtdLançamentos').innerText = linhasFiltradasComIndice.length;
+            document.getElementById('resumoSomaStatusC').innerText = formatarSimples(somaStatusC);
+
+            tbody.innerHTML = linhasFiltradasComIndice.map((item, indexVisual) => {
+                const row = item.row;
+                const originalIndex = item.originalIndex;
+                const trId = `row-${indexVisual}`;
+                const isSelected = linhasSelecionadasIndices.has(indexVisual) ? 'linha-selecionada' : '';
+                
+                return `<tr id="${trId}" class="${isSelected}" onclick="selecionarLinha(${indexVisual}, event)" ondblclick="abrirModalEditar(${originalIndex})">
                     ${row.map((cell, idx) => {
-                        const val = (idx === 0) ? formatarDataExibicao(cell) : (cell !== null && cell !== undefined ? cell : '');
-                        return `<td title="${val}">${val}</td>`;
+                        let val = '';
+                        if (idx === 0) {
+                            val = formatarDataExibicao(cell);
+                        } else if (idx === 3) {
+                            val = formatarMoedaExcel(cell);
+                        } else {
+                            val = (cell !== null && cell !== undefined ? cell : '');
+                        }
+                        return `<td title="${idx === 3 ? '' : val}">${val}</td>`;
                     }).join('')}
                 </tr>`;
             }).join('');
@@ -533,8 +668,40 @@
             renderizarTabela();
         }
 
-        function abrirModal() {
+        function abrirModalAdicionar() {
             document.getElementById('dataForm').reset();
+            document.getElementById('fIndiceOriginal').value = "";
+            document.getElementById('modalTitulo').innerText = "Adicionar Novo Item";
+            document.getElementById('btnSalvarModal').innerText = "Salvar no Topo";
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        // Abre a modal para editar uma linha existente ao dar duplo clique
+        function abrirModalEditar(originalIndex) {
+            const rowData = dadosBrutos[originalIndex + 1]; // +1 devido ao cabeçalho
+            if (!rowData) return;
+
+            document.getElementById('fIndiceOriginal').value = originalIndex + 2; // Linha real na planilha (cabeçalho = 1)
+            document.getElementById('modalTitulo').innerText = "Editar Lançamento";
+            document.getElementById('btnSalvarModal').innerText = "Atualizar Registro";
+
+            // Formata data para o input type="date" (YYYY-MM-DD)
+            const dtObj = parseDataParaDateObj(rowData[0]);
+            if (dtObj && !isNaN(dtObj.getTime())) {
+                const ano = dtObj.getFullYear();
+                const mes = String(dtObj.getMonth() + 1).padStart(2, '0');
+                const dia = String(dtObj.getDate()).padStart(2, '0');
+                document.getElementById('fData').value = `${ano}-${mes}-${dia}`;
+            } else {
+                document.getElementById('fData').value = '';
+            }
+
+            document.getElementById('fCategoria').value = rowData[1] || '';
+            document.getElementById('fDescritivo').value = rowData[2] || '';
+            document.getElementById('fValor').value = rowData[3] || '';
+            document.getElementById('fTipo').value = rowData[4] || '';
+            document.getElementById('fStatus').value = rowData[5] || '';
+
             document.getElementById('modalOverlay').style.display = 'flex';
         }
 
@@ -550,7 +717,12 @@
                 const p = dataInput.split('-');
                 dataFormatada = `${p[2]}/${p[1]}/${p[0]}`;
             }
+
+            const linhaEditando = document.getElementById('fIndiceOriginal').value;
+
             const payload = {
+                acao: linhaEditando ? "EDITAR" : "INSERIR",
+                linha: linhaEditando || "",
                 col1: dataFormatada,
                 col2: document.getElementById('fCategoria').value,
                 col3: document.getElementById('fDescritivo').value,
@@ -558,6 +730,7 @@
                 col5: document.getElementById('fTipo').value,
                 col6: document.getElementById('fStatus').value
             };
+
             document.getElementById('statusNuvem').innerText = "Salvando...";
             try {
                 await fetch(WEB_APP_URL, {
