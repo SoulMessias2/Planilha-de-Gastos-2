@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -27,17 +28,17 @@
         }
 
         html, body {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background-color: var(--bg-color);
             color: var(--text-main);
-            overflow-x: hidden;
+            overflow: hidden;
             margin: 0;
             padding: 0;
         }
 
         .container {
-            width: 100vw;
+            width: 100%;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -53,6 +54,7 @@
             padding: 10px 20px;
             border-bottom: 1px solid var(--border-line);
             width: 100%;
+            flex-shrink: 0;
         }
 
         .header-controls {
@@ -71,6 +73,7 @@
             align-items: center;
             gap: 10px;
             width: 100%;
+            flex-shrink: 0;
         }
 
         .filter-group {
@@ -128,10 +131,10 @@
 
         .table-container {
             flex: 1;
-            width: 100vw;
+            width: 100%;
             background: var(--surface-color);
             overflow-y: auto;
-            overflow-x: hidden;
+            overflow-x: auto;
         }
 
         table {
