@@ -27,9 +27,10 @@
             user-select: none;
         }
 
+        /* Garante tela cheia absoluta sem margens */
         html, body {
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background-color: var(--bg-color);
             color: var(--text-main);
             overflow: hidden;
@@ -38,7 +39,7 @@
         }
 
         .container {
-            width: 100%;
+            width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -129,9 +130,10 @@
             font-size: 0.75rem;
         }
 
+        /* Ocupa toda a largura da tela preenchendo as bordas */
         .table-container {
             flex: 1;
-            width: 100%;
+            width: 100vw;
             background: var(--surface-color);
             overflow-y: auto;
             overflow-x: auto;
