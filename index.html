@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Financeiro</title>
+    <title>Painel Financeiro - Mensal</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -55,6 +55,7 @@
             border-bottom: 1px solid var(--border-line);
             width: 100%;
             flex-shrink: 0;
+            gap: 15px;
         }
 
         .header-controls {
@@ -62,6 +63,39 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
+        }
+
+        .tabs-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .tab-button {
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 1px solid var(--border-line);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .tab-button.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
         }
 
         .resumo-bar {
@@ -173,32 +207,20 @@
 
         table {
             width: 100%;
-            table-layout: fixed;
+            min-width: 2200px; /* Amplo espaço para as 18 colunas */
+            table-layout: auto;
             border-collapse: collapse;
             font-size: 0.8rem;
         }
 
-        col:nth-child(1) { width: 12%; }
-        col:nth-child(2) { width: 18%; }
-        col:nth-child(3) { width: 34%; }
-        col:nth-child(4) { width: 12%; }
-        col:nth-child(5) { width: 12%; }
-        col:nth-child(6) { width: 12%; }
-
         th, td {
-            padding: 10px 16px;
+            padding: 10px 14px;
             text-align: center;
             border: none;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: middle;
-        }
-
-        /* Alinhamento estilo Excel para a coluna de Valores */
-        th:nth-child(4), td:nth-child(4) {
-            text-align: right;
-            padding-right: 24px;
         }
 
         thead th {
@@ -236,7 +258,9 @@
             border-radius: 8px;
             padding: 20px;
             width: 100%;
-            max-width: 480px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--border-line);
         }
@@ -252,7 +276,7 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
 
@@ -262,7 +286,8 @@
             gap: 2px;
         }
 
-        .form-group.full-width { grid-column: span 2; }
+        .form-group.full-width { grid-column: span 3; }
+        .form-group.half-width { grid-column: span 2; }
         .form-group label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         .form-group input, .form-group select {
             padding: 6px 8px;
@@ -283,14 +308,17 @@
     <div class="container">
         <header>
             <div class="header-controls">
-                <span id="statusNuvem">Sincronizando...</span>
-                <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
+                <div class="tabs-container" id="tabsNav"></div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span id="statusNuvem">Sincronizando...</span>
+                    <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
+                </div>
             </div>
         </header>
 
         <div class="resumo-bar">
             <div class="resumo-card">
-                <span class="card-title">Soma Total</span>
+                <span class="card-title">Soma Parcela</span>
                 <span class="card-value" id="resumoSomaTotal">R$ 0,00</span>
             </div>
             <div class="resumo-card">
@@ -308,16 +336,6 @@
                 <input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar...">
             </div>
             <div class="filter-group">
-                <select id="filtroCategoria" onchange="renderizarTabela()">
-                    <option value="">Todas Categorias</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <select id="filtroTipo" onchange="renderizarTabela()">
-                    <option value="">Todos Tipos</option>
-                </select>
-            </div>
-            <div class="filter-group">
                 <select id="filtroStatus" onchange="renderizarTabela()">
                     <option value="">Todos Status</option>
                 </select>
@@ -327,7 +345,6 @@
                 <span>até</span>
                 <input type="date" id="dataFim" onchange="renderizarTabela()">
             </div>
-            <!-- Botões de Atalho Solicitados -->
             <button class="btn btn-sm" onclick="filtrarMesAtual()">📅 Mês Atual</button>
             <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
             <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
@@ -335,7 +352,6 @@
 
         <div class="table-container">
             <table>
-                <colgroup><col><col><col><col><col><col></colgroup>
                 <thead id="tableHeader"></thead>
                 <tbody id="tableBody"></tbody>
             </table>
@@ -351,35 +367,10 @@
             </div>
             <form id="dataForm" onsubmit="salvarRegistro(event)">
                 <input type="hidden" id="fIndiceOriginal">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Data</label>
-                        <input type="date" id="fData" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Categoria</label>
-                        <select id="fCategoria" required><option value="">Carregando...</option></select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Descritivo</label>
-                        <input type="text" id="fDescritivo" placeholder="Digite a descrição..." required>
-                    </div>
-                    <div class="form-group">
-                        <label>Valor (R$)</label>
-                        <input type="text" id="fValor" placeholder="Ex: 150,00" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select id="fTipo" required><option value="">Carregando...</option></select>
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Status</label>
-                        <input type="text" id="fStatus" placeholder="Ex: Pago, Pendente..." required>
-                    </div>
-                </div>
+                <div class="form-grid" id="modalFormGrid"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
-                    <button type="submit" class="btn" id="btnSalvarModal">Salvar no Topo</button>
+                    <button type="submit" class="btn" id="btnSalvarModal">Salvar Registro</button>
                 </div>
             </form>
         </div>
@@ -387,7 +378,16 @@
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzMSr4YxW90lYjK-2pAJQ5gYVOnVSn0yDsTWYvN0ulz_QjBQZMCWFhyXwYP7rX2u-Fp/exec';
+        
+        const CABECALHOS_MENSAL = [
+            "ANO", "MÊS", "TIPO DE PGTO.", "PRODUTO", "LOCAL", "PESSOA", 
+            "DATA ADQUIRIDO", "DATA DE PAG.", "DATA FECH. FATURA", "VALOR DA PARCELA", 
+            "VALOR TOTAL", "PARCELA", "TOTAL DE PARCELAS", "DESCONTO", 
+            "OBS E COMPROVAN.", "RECEBER", "PAGAR", "STATUS"
+        ];
+
         let dadosBrutos = [];
+        let abaSelecionada = '';
         let linhasSelecionadasIndices = new Set();
         let ultimoIndiceClicado = null;
 
@@ -443,18 +443,31 @@
             return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        async function carregarDados() {
+        async function carregarDados(nomeAba = '') {
             const statusEl = document.getElementById('statusNuvem');
             statusEl.innerText = "Sincronizando...";
             try {
-                const resp = await fetch(WEB_APP_URL);
-                dadosBrutos = await resp.json();
-                if (!dadosBrutos || dadosBrutos.length === 0) {
-                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="100%">Planilha vazia.</td></tr>`;
+                const url = nomeAba ? `${WEB_APP_URL}?aba=${encodeURIComponent(nomeAba)}` : WEB_APP_URL;
+                const resp = await fetch(url);
+                const jsonResp = await resp.json();
+
+                if (jsonResp.erro) {
+                    alert(jsonResp.erro);
+                    statusEl.innerText = "Erro ao carregar";
                     return;
                 }
+
+                dadosBrutos = jsonResp.dados || [];
+                abaSelecionada = jsonResp.abaAtual;
+
+                renderizarBotoesAbas(jsonResp.todasAbas, jsonResp.abaAtual);
+                
+                // Se for a aba Mensal e estiver vazia, injeta o cabeçalho padrão
+                if ((!dadosBrutos || dadosBrutos.length === 0) && abaSelecionada.toLowerCase() === 'mensal') {
+                    dadosBrutos = [CABECALHOS_MENSAL];
+                }
+
                 popularFiltrosCabecalho();
-                preencherOpcoesFormularioModal();
                 renderizarTabela();
                 statusEl.innerText = "Online";
             } catch (err) {
@@ -463,21 +476,38 @@
             }
         }
 
+        function renderizarBotoesAbas(todasAbas, abaAtual) {
+            const tabsContainer = document.getElementById('tabsNav');
+            if (!todasAbas || todasAbas.length === 0) return;
+
+            tabsContainer.innerHTML = todasAbas.map(nome => {
+                const isActive = nome === abaAtual ? 'active' : '';
+                return `<button class="tab-button ${isActive}" onclick="trocarAba('${nome}')">📄 ${nome}</button>`;
+            }).join('');
+        }
+
+        function trocarAba(nomeAba) {
+            if (nomeAba === abaSelecionada) return;
+            removerTodosFiltros();
+            carregarDados(nomeAba);
+        }
+
         function popularFiltrosCabecalho() {
-            const categoriasSet = new Set(), tiposSet = new Set(), statusSet = new Set();
+            const statusSet = new Set();
             let temStatusVazio = false;
+            
+            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
+            const colStatusIdx = isMensal ? 17 : 5;
+
             dadosBrutos.slice(1).forEach(row => {
-                if (row[1]) categoriasSet.add(row[1].toString().trim());
-                if (row[4]) tiposSet.add(row[4].toString().trim());
-                const valStatus = row[5];
+                const valStatus = row[colStatusIdx];
                 if (valStatus !== null && valStatus !== undefined && valStatus.toString().trim() !== '') {
                     statusSet.add(valStatus.toString().trim());
                 } else {
                     temStatusVazio = true;
                 }
             });
-            preencherSelectFiltro('filtroCategoria', categoriasSet, 'Todas Categorias');
-            preencherSelectFiltro('filtroTipo', tiposSet, 'Todos Tipos');
+
             const selectStatus = document.getElementById('filtroStatus');
             const valorAtualStatus = selectStatus.value;
             selectStatus.innerHTML = `<option value="">Todos Status</option>`;
@@ -496,30 +526,14 @@
             selectStatus.value = valorAtualStatus;
         }
 
-        function preencherSelectFiltro(id, conjunto, textoPadrao) {
-            const select = document.getElementById(id);
-            const valorAtual = select.value;
-            select.innerHTML = `<option value="">${textoPadrao}</option>`;
-            Array.from(conjunto).sort().forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item;
-                opt.innerText = item;
-                select.appendChild(opt);
-            });
-            select.value = valorAtual;
-        }
-
         function removerTodosFiltros() {
             document.getElementById('inputPesquisa').value = '';
-            document.getElementById('filtroCategoria').value = '';
-            document.getElementById('filtroTipo').value = '';
             document.getElementById('filtroStatus').value = '';
             document.getElementById('dataInicio').value = '';
             document.getElementById('dataFim').value = '';
             renderizarTabela();
         }
 
-        // Função do Botão Mês Atual
         function filtrarMesAtual() {
             const agora = new Date();
             const ano = agora.getFullYear();
@@ -531,10 +545,8 @@
             renderizarTabela();
         }
 
-        // Função do Botão Filtrar Status (C)
         function filtrarStatusC() {
             const selectStatus = document.getElementById('filtroStatus');
-            // Procura a opção correspondente à letra C ou seleciona diretamente
             for (let i = 0; i < selectStatus.options.length; i++) {
                 if (selectStatus.options[i].value.toUpperCase() === 'C') {
                     selectStatus.selectedIndex = i;
@@ -544,61 +556,46 @@
             renderizarTabela();
         }
 
-        function preencherOpcoesFormularioModal() {
-            const catSet = new Set(), tipoSet = new Set();
-            dadosBrutos.slice(1).forEach(row => {
-                if (row[1]) catSet.add(row[1].toString().trim());
-                if (row[4]) tipoSet.add(row[4].toString().trim());
-            });
-            preencherSelectModal('fCategoria', catSet, 'Selecione...');
-            preencherSelectModal('fTipo', tipoSet, 'Selecione...');
-        }
-
-        function preencherSelectModal(id, setOpcoes, textoPadrao) {
-            const select = document.getElementById(id);
-            select.innerHTML = `<option value="">${textoPadrao}</option>`;
-            Array.from(setOpcoes).sort().forEach(op => {
-                const opt = document.createElement('option');
-                opt.value = op;
-                opt.innerText = op;
-                select.appendChild(opt);
-            });
-        }
-
         function renderizarTabela() {
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeader');
-            const cabecalhos = dadosBrutos[0];
+
+            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
+            const cabecalhos = isMensal ? CABECALHOS_MENSAL : (dadosBrutos[0] || []);
+
             thead.innerHTML = `<tr>${cabecalhos.map(col => `<th>${col}</th>`).join('')}</tr>`;
 
             const textoPesquisa = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-            const filtroCat = document.getElementById('filtroCategoria').value;
-            const filtroTip = document.getElementById('filtroTipo').value;
             const filtroSta = document.getElementById('filtroStatus').value;
             const inputInicio = document.getElementById('dataInicio').value;
             const inputFim = document.getElementById('dataFim').value;
             const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
             const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
 
+            const colDataIdx = isMensal ? 6 : 0; // Data Adquirido na Mensal
+            const colValorIdx = isMensal ? 9 : 3; // Valor da Parcela na Mensal
+            const colStatusIdx = isMensal ? 17 : 5; // Status na Mensal
+
             let linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => ({ row, originalIndex })).filter(item => {
                 const row = item.row;
+                
                 if (dInicio || dFim) {
-                    const dtLinha = parseDataParaDateObj(row[0]);
+                    const dtLinha = parseDataParaDateObj(row[colDataIdx]);
                     if (dtLinha) {
                         if (dInicio && dtLinha < dInicio) return false;
                         if (dFim && dtLinha > dFim) return false;
-                    } else { return false; }
+                    }
                 }
-                if (filtroCat && row[1] && row[1].toString().trim() !== filtroCat) return false;
-                if (filtroTip && row[4] && row[4].toString().trim() !== filtroTip) return false;
+
                 if (filtroSta !== "") {
-                    const valStatusRow = row[5] !== null && row[5] !== undefined ? row[5].toString().trim() : "";
+                    const valStatusRow = row[colStatusIdx] !== null && row[colStatusIdx] !== undefined ? row[colStatusIdx].toString().trim() : "";
                     if (filtroSta === "VAZIO_VAL") {
                         if (valStatusRow !== "") return false;
                     } else {
                         if (valStatusRow !== filtroSta) return false;
                     }
                 }
+
                 if (textoPesquisa) {
                     const linhaMatch = row.some(cell => {
                         if (cell === null || cell === undefined) return false;
@@ -614,9 +611,9 @@
 
             linhasFiltradasComIndice.forEach(item => {
                 const row = item.row;
-                const valNum = converterParaNumero(row[3]);
+                const valNum = converterParaNumero(row[colValorIdx]);
                 somaTotal += valNum;
-                const statusStr = (row[5] || '').toString().trim().toUpperCase();
+                const statusStr = (row[colStatusIdx] || '').toString().trim().toUpperCase();
                 if (statusStr === 'C' || statusStr.includes('C')) {
                     somaStatusC += valNum;
                 }
@@ -633,16 +630,19 @@
                 const isSelected = linhasSelecionadasIndices.has(indexVisual) ? 'linha-selecionada' : '';
                 
                 return `<tr id="${trId}" class="${isSelected}" onclick="selecionarLinha(${indexVisual}, event)" ondblclick="abrirModalEditar(${originalIndex})">
-                    ${row.map((cell, idx) => {
+                    ${cabecalhos.map((_, idx) => {
+                        const cell = row[idx];
                         let val = '';
-                        if (idx === 0) {
+                        if (isMensal && [6, 7, 8].includes(idx)) {
                             val = formatarDataExibicao(cell);
-                        } else if (idx === 3) {
+                        } else if (isMensal && [9, 10, 13, 15, 16].includes(idx)) {
+                            val = formatarMoedaExcel(cell);
+                        } else if (!isMensal && idx === 3) {
                             val = formatarMoedaExcel(cell);
                         } else {
                             val = (cell !== null && cell !== undefined ? cell : '');
                         }
-                        return `<td title="${idx === 3 ? '' : val}">${val}</td>`;
+                        return `<td title="${val}">${val}</td>`;
                     }).join('')}
                 </tr>`;
             }).join('');
@@ -668,40 +668,56 @@
             renderizarTabela();
         }
 
+        function construirFormularioModal(rowData = null) {
+            const grid = document.getElementById('modalFormGrid');
+            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
+            const cabecalhos = isMensal ? CABECALHOS_MENSAL : ["Data", "Categoria", "Descritivo", "Valor", "Tipo", "Status"];
+
+            grid.innerHTML = cabecalhos.map((col, idx) => {
+                const valorAtual = rowData ? (rowData[idx] || '') : '';
+                let isFullWidth = (col.includes('OBS') || col === 'PRODUTO') ? 'full-width' : '';
+
+                if (col.includes('DATA')) {
+                    let dtFormatted = '';
+                    if (valorAtual) {
+                        const dtObj = parseDataParaDateObj(valorAtual);
+                        if (dtObj && !isNaN(dtObj.getTime())) {
+                            dtFormatted = `${dtObj.getFullYear()}-${String(dtObj.getMonth() + 1).padStart(2, '0')}-${String(dtObj.getDate()).padStart(2, '0')}`;
+                        }
+                    }
+                    return `
+                        <div class="form-group ${isFullWidth}">
+                            <label>${col}</label>
+                            <input type="date" id="f_col_${idx}" value="${dtFormatted}">
+                        </div>`;
+                }
+
+                return `
+                    <div class="form-group ${isFullWidth}">
+                        <label>${col}</label>
+                        <input type="text" id="f_col_${idx}" value="${valorAtual}" placeholder="${col}">
+                    </div>`;
+            }).join('');
+        }
+
         function abrirModalAdicionar() {
             document.getElementById('dataForm').reset();
             document.getElementById('fIndiceOriginal').value = "";
-            document.getElementById('modalTitulo').innerText = "Adicionar Novo Item";
-            document.getElementById('btnSalvarModal').innerText = "Salvar no Topo";
+            document.getElementById('modalTitulo').innerText = "Adicionar Item - (" + abaSelecionada + ")";
+            document.getElementById('btnSalvarModal').innerText = "Salvar Registro";
+            construirFormularioModal();
             document.getElementById('modalOverlay').style.display = 'flex';
         }
 
-        // Abre a modal para editar uma linha existente ao dar duplo clique
         function abrirModalEditar(originalIndex) {
-            const rowData = dadosBrutos[originalIndex + 1]; // +1 devido ao cabeçalho
+            const rowData = dadosBrutos[originalIndex + 1];
             if (!rowData) return;
 
-            document.getElementById('fIndiceOriginal').value = originalIndex + 2; // Linha real na planilha (cabeçalho = 1)
-            document.getElementById('modalTitulo').innerText = "Editar Lançamento";
+            document.getElementById('fIndiceOriginal').value = originalIndex + 2;
+            document.getElementById('modalTitulo').innerText = "Editar Registro - (" + abaSelecionada + ")";
             document.getElementById('btnSalvarModal').innerText = "Atualizar Registro";
-
-            // Formata data para o input type="date" (YYYY-MM-DD)
-            const dtObj = parseDataParaDateObj(rowData[0]);
-            if (dtObj && !isNaN(dtObj.getTime())) {
-                const ano = dtObj.getFullYear();
-                const mes = String(dtObj.getMonth() + 1).padStart(2, '0');
-                const dia = String(dtObj.getDate()).padStart(2, '0');
-                document.getElementById('fData').value = `${ano}-${mes}-${dia}`;
-            } else {
-                document.getElementById('fData').value = '';
-            }
-
-            document.getElementById('fCategoria').value = rowData[1] || '';
-            document.getElementById('fDescritivo').value = rowData[2] || '';
-            document.getElementById('fValor').value = rowData[3] || '';
-            document.getElementById('fTipo').value = rowData[4] || '';
-            document.getElementById('fStatus').value = rowData[5] || '';
-
+            
+            construirFormularioModal(rowData);
             document.getElementById('modalOverlay').style.display = 'flex';
         }
 
@@ -711,25 +727,25 @@
 
         async function salvarRegistro(event) {
             event.preventDefault();
-            const dataInput = document.getElementById('fData').value;
-            let dataFormatada = dataInput;
-            if (dataInput && dataInput.includes('-')) {
-                const p = dataInput.split('-');
-                dataFormatada = `${p[2]}/${p[1]}/${p[0]}`;
-            }
-
+            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
+            const totalCols = isMensal ? 18 : 6;
             const linhaEditando = document.getElementById('fIndiceOriginal').value;
 
             const payload = {
+                aba: abaSelecionada,
                 acao: linhaEditando ? "EDITAR" : "INSERIR",
-                linha: linhaEditando || "",
-                col1: dataFormatada,
-                col2: document.getElementById('fCategoria').value,
-                col3: document.getElementById('fDescritivo').value,
-                col4: document.getElementById('fValor').value,
-                col5: document.getElementById('fTipo').value,
-                col6: document.getElementById('fStatus').value
+                linha: linhaEditando || ""
             };
+
+            for (let i = 0; i < totalCols; i++) {
+                const el = document.getElementById(`f_col_${i}`);
+                let val = el ? el.value : '';
+                if (el && el.type === 'date' && val.includes('-')) {
+                    const p = val.split('-');
+                    val = `${p[2]}/${p[1]}/${p[0]}`;
+                }
+                payload[`col${i + 1}`] = val;
+            }
 
             document.getElementById('statusNuvem').innerText = "Salvando...";
             try {
@@ -739,7 +755,7 @@
                     body: JSON.stringify(payload)
                 });
                 fecharModal();
-                setTimeout(carregarDados, 1200);
+                setTimeout(() => carregarDados(abaSelecionada), 1200);
             } catch (err) {
                 console.error("Erro ao salvar:", err);
                 alert("Erro ao salvar dados.");
