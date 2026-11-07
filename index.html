@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Financeiro - Mensal</title>
+    <title>Painel Financeiro - Lobby</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -17,6 +17,10 @@
             --row-even: #ffffff;
             --row-odd: #f8fafc;
             --row-selected: #cbd5e1;
+            --status-efetuado: #059669;
+            --status-pendente: #d97706;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
         }
 
         * {
@@ -37,10 +41,80 @@
             padding: 0;
         }
 
-        .container {
+        .lobby-container {
             width: 100vw;
             height: 100vh;
             display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            gap: 30px;
+        }
+
+        .lobby-title h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .lobby-title p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .cards-grid {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .lobby-card {
+            background: #ffffff;
+            border: 1px solid var(--border-line);
+            border-radius: 12px;
+            padding: 30px;
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .lobby-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .lobby-card h3 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: none;
             flex-direction: column;
             margin: 0;
             padding: 0;
@@ -55,7 +129,6 @@
             border-bottom: 1px solid var(--border-line);
             width: 100%;
             flex-shrink: 0;
-            gap: 15px;
         }
 
         .header-controls {
@@ -65,42 +138,23 @@
             width: 100%;
         }
 
-        .tabs-container {
+        .header-left {
             display: flex;
             align-items: center;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 2px;
+            gap: 15px;
         }
 
-        .tab-button {
-            background: #f1f5f9;
-            color: var(--text-muted);
-            border: 1px solid var(--border-line);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .tab-button:hover {
-            background: #e2e8f0;
+        .titulo-aba-atual {
+            font-weight: 700;
+            font-size: 1.1rem;
             color: var(--text-main);
-        }
-
-        .tab-button.active {
-            background: var(--primary);
-            color: #ffffff;
-            border-color: var(--primary);
-            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
         }
 
         .resumo-bar {
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
             padding: 10px 20px;
             background: #f8fafc;
             border-bottom: 1px solid var(--border-line);
@@ -108,26 +162,33 @@
             flex-wrap: wrap;
         }
 
+        .resumo-cards-left {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .resumo-card {
             background: #ffffff;
             border: 1px solid var(--border-line);
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 6px;
             display: flex;
             flex-direction: column;
             gap: 2px;
-            min-width: 180px;
+            min-width: 140px;
         }
 
         .resumo-card .card-title {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
         }
 
         .resumo-card .card-value {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: var(--text-main);
         }
@@ -165,11 +226,7 @@
         }
 
         .filter-group input[type="text"] {
-            width: 180px;
-        }
-
-        .filter-group select {
-            cursor: pointer;
+            width: 130px;
         }
 
         .btn {
@@ -192,9 +249,39 @@
             border: 1px solid var(--border-line);
         }
 
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+        }
+        .btn-danger:hover { background: var(--danger-hover); }
+
         .btn-sm {
-            padding: 4px 10px;
+            padding: 4px 8px;
             font-size: 0.75rem;
+        }
+
+        .btn-action-edit {
+            background: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid var(--border-line);
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .btn-action-edit:hover { background: #cbd5e1; }
+
+        .btn-pendente {
+            background: #d97706;
+            color: white;
+            border: 2px solid transparent;
+        }
+        .btn-pendente:hover { background: #b45309; }
+        .btn-pendente.ativo {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.4);
+            font-weight: 700;
         }
 
         .table-container {
@@ -202,19 +289,29 @@
             width: 100vw;
             background: var(--surface-color);
             overflow-y: auto;
-            overflow-x: auto;
+            overflow-x: hidden;
         }
 
         table {
             width: 100%;
-            min-width: 2200px; /* Amplo espaço para as 18 colunas */
-            table-layout: auto;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
 
+        table.tabela-mensal {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        col.dia-col-1 { width: 12%; }
+        col.dia-col-2 { width: 18%; }
+        col.dia-col-3 { width: 34%; }
+        col.dia-col-4 { width: 12%; }
+        col.dia-col-5 { width: 12%; }
+        col.dia-col-6 { width: 12%; }
+
         th, td {
-            padding: 10px 14px;
+            padding: 8px 10px;
             text-align: center;
             border: none;
             white-space: nowrap;
@@ -223,13 +320,18 @@
             vertical-align: middle;
         }
 
+        table.tabela-mensal th, table.tabela-mensal td {
+            font-size: 0.72rem;
+            padding: 6px 4px;
+        }
+
         thead th {
             background: #ffffff;
             font-weight: 600;
             color: var(--text-muted);
             border-bottom: 1px solid var(--border-line);
             text-transform: uppercase;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             letter-spacing: 0.03em;
             position: sticky;
             top: 0;
@@ -241,6 +343,17 @@
         tbody tr { cursor: pointer; transition: background-color 0.1s ease; }
         tbody tr:hover { background-color: #e2e8f0; }
         tbody tr.linha-selecionada { background-color: var(--row-selected) !important; font-weight: 500; }
+
+        .badge-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.68rem;
+        }
+
+        .badge-efetuado { background-color: #d1fae5; color: var(--status-efetuado); }
+        .badge-pendente { background-color: #fef3c7; color: var(--status-pendente); }
 
         .modal-overlay {
             position: fixed;
@@ -258,11 +371,11 @@
             border-radius: 8px;
             padding: 20px;
             width: 100%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 480px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--border-line);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -276,8 +389,13 @@
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
+        }
+
+        .form-grid.dinamico {
+            display: flex;
+            flex-direction: column;
         }
 
         .form-group {
@@ -286,8 +404,7 @@
             gap: 2px;
         }
 
-        .form-group.full-width { grid-column: span 3; }
-        .form-group.half-width { grid-column: span 2; }
+        .form-group.full-width { grid-column: span 2; }
         .form-group label { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
         .form-group input, .form-group select {
             padding: 6px 8px;
@@ -299,66 +416,53 @@
             width: 100%;
         }
 
-        .modal-footer { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; }
+        .modal-footer { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .modal-footer-right { display: flex; gap: 8px; }
         #statusNuvem { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
     </style>
 </head>
-<body onload="carregarDados()">
+<body>
 
-    <div class="container">
+    <div class="lobby-container" id="lobbyContainer">
+        <div class="lobby-title">
+            <h1>Painel Financeiro</h1>
+            <p>Selecione a planilha que deseja visualizar e gerenciar</p>
+        </div>
+        <div class="cards-grid">
+            <div class="lobby-card" onclick="selecionarAba('Dia-a-dia')">
+                <div class="card-icon">📅</div>
+                <h3>Dia-a-dia</h3>
+            </div>
+            <div class="lobby-card" onclick="selecionarAba('Mensal')">
+                <div class="card-icon">📊</div>
+                <h3>Mensal</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="painelContainer">
         <header>
             <div class="header-controls">
-                <div class="tabs-container" id="tabsNav"></div>
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="header-left">
+                    <button class="btn btn-outline btn-sm" onclick="voltarParaLobby()">← Voltar ao Lobby</button>
+                    <span class="titulo-aba-atual" id="nomeAbaAtual">PARCELAMENTOS</span>
                     <span id="statusNuvem">Sincronizando...</span>
-                    <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
                 </div>
             </div>
         </header>
 
-        <div class="resumo-bar">
-            <div class="resumo-card">
-                <span class="card-title">Soma Parcela</span>
-                <span class="card-value" id="resumoSomaTotal">R$ 0,00</span>
-            </div>
-            <div class="resumo-card">
-                <span class="card-title">Qtd. Lançamentos</span>
-                <span class="card-value" id="resumoQtdLançamentos">0</span>
-            </div>
-            <div class="resumo-card">
-                <span class="card-title">Total Status "C"</span>
-                <span class="card-value" id="resumoSomaStatusC">R$ 0,00</span>
-            </div>
-        </div>
-
-        <div class="filters-bar">
-            <div class="filter-group">
-                <input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar...">
-            </div>
-            <div class="filter-group">
-                <select id="filtroStatus" onchange="renderizarTabela()">
-                    <option value="">Todos Status</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <input type="date" id="dataInicio" onchange="renderizarTabela()">
-                <span>até</span>
-                <input type="date" id="dataFim" onchange="renderizarTabela()">
-            </div>
-            <button class="btn btn-sm" onclick="filtrarMesAtual()">📅 Mês Atual</button>
-            <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
-            <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
-        </div>
+        <div class="resumo-bar" id="resumoBarContainer"></div>
+        <div class="filters-bar" id="filtrosBarContainer"></div>
 
         <div class="table-container">
-            <table>
+            <table id="mainTable">
+                <colgroup id="tableColGroup"></colgroup>
                 <thead id="tableHeader"></thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Modal (Adicionar / Editar) -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -367,10 +471,15 @@
             </div>
             <form id="dataForm" onsubmit="salvarRegistro(event)">
                 <input type="hidden" id="fIndiceOriginal">
-                <div class="form-grid" id="modalFormGrid"></div>
+                <div class="form-grid" id="formGridContainer"></div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
-                    <button type="submit" class="btn" id="btnSalvarModal">Salvar Registro</button>
+                    <div>
+                        <button type="button" class="btn btn-danger" id="btnDeletarModal" style="display:none;" onclick="deletarRegistroAtualModal()">🗑️ Deletar Registro</button>
+                    </div>
+                    <div class="modal-footer-right">
+                        <button type="button" class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+                        <button type="submit" class="btn" id="btnSalvarModal">Salvar Registro</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -378,18 +487,101 @@
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzMSr4YxW90lYjK-2pAJQ5gYVOnVSn0yDsTWYvN0ulz_QjBQZMCWFhyXwYP7rX2u-Fp/exec';
-        
-        const CABECALHOS_MENSAL = [
-            "ANO", "MÊS", "TIPO DE PGTO.", "PRODUTO", "LOCAL", "PESSOA", 
-            "DATA ADQUIRIDO", "DATA DE PAG.", "DATA FECH. FATURA", "VALOR DA PARCELA", 
-            "VALOR TOTAL", "PARCELA", "TOTAL DE PARCELAS", "DESCONTO", 
-            "OBS E COMPROVAN.", "RECEBER", "PAGAR", "STATUS"
-        ];
-
         let dadosBrutos = [];
-        let abaSelecionada = '';
         let linhasSelecionadasIndices = new Set();
         let ultimoIndiceClicado = null;
+        let abaAtual = 'Dia-a-dia';
+        let filtroPendenteAtivo = false;
+
+        const MESES_LISTA = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+        function selecionarAba(nomeAba) {
+            abaAtual = nomeAba;
+            document.getElementById('nomeAbaAtual').innerText = abaAtual === 'Mensal' ? 'PARCELAMENTOS' : 'Dia-a-dia';
+            document.getElementById('lobbyContainer').style.display = 'none';
+            document.getElementById('painelContainer').style.display = 'flex';
+
+            const tableEl = document.getElementById('mainTable');
+            if (abaAtual === 'Mensal') {
+                tableEl.classList.add('tabela-mensal');
+            } else {
+                tableEl.classList.remove('tabela-mensal');
+            }
+
+            montarLayoutEspecificoAba();
+            carregarDados();
+        }
+
+        function voltarParaLobby() {
+            document.getElementById('painelContainer').style.display = 'none';
+            document.getElementById('lobbyContainer').style.display = 'flex';
+        }
+
+        function montarLayoutEspecificoAba() {
+            const resumoBar = document.getElementById('resumoBarContainer');
+            const filtrosBar = document.getElementById('filtrosBarContainer');
+
+            if (abaAtual === 'Dia-a-dia') {
+                resumoBar.innerHTML = `
+                    <div class="resumo-cards-left">
+                        <div class="resumo-card"><span class="card-title">Soma Total</span><span class="card-value" id="resumoSomaTotal">R$ 0,00</span></div>
+                        <div class="resumo-card"><span class="card-title">Qtd. Lançamentos</span><span class="card-value" id="resumoQtdLançamentos">0</span></div>
+                        <div class="resumo-card"><span class="card-title">Total Status "C"</span><span class="card-value" id="resumoSomaStatusC">R$ 0,00</span></div>
+                    </div>
+                    <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
+                `;
+                filtrosBar.innerHTML = `
+                    <div class="filter-group"><input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar..."></div>
+                    <div class="filter-group"><select id="filtroCategoria" onchange="renderizarTabela()"><option value="">Todas Categorias</option></select></div>
+                    <div class="filter-group"><select id="filtroTipo" onchange="renderizarTabela()"><option value="">Todos Tipos</option></select></div>
+                    <div class="filter-group"><select id="filtroStatus" onchange="renderizarTabela()"><option value="">Todos Status</option></select></div>
+                    <div class="filter-group"><input type="date" id="dataInicio" onchange="renderizarTabela()"><span>até</span><input type="date" id="dataFim" onchange="renderizarTabela()"></div>
+                    <button class="btn btn-sm" onclick="filtrarMesAtual()">📅 Mês Atual</button>
+                    <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
+                    <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
+                `;
+            } else {
+                // ADICIONADO CARD "PARCELA TOTAL" AO LADO DE "PARCELAS FALTANTES"
+                resumoBar.innerHTML = `
+                    <div class="resumo-cards-left">
+                        <div class="resumo-card"><span class="card-title">Qtd. Registros</span><span class="card-value" id="resumoQtd">0</span></div>
+                        <div class="resumo-card"><span class="card-title">Parcelas Faltantes</span><span class="card-value" id="resumoParcelasFaltantes" style="color: var(--status-pendente);">0</span></div>
+                        <div class="resumo-card"><span class="card-title">Parcela Total</span><span class="card-value" id="resumoParcelaTotal" style="color: #2563eb;">0</span></div>
+                        <div class="resumo-card" style="border-color: var(--primary);"><span class="card-title" style="color: var(--primary);">Total Filtrado</span><span class="card-value" id="resumoSomaParcelas" style="color: var(--primary);">R$ 0,00</span></div>
+                    </div>
+                    <button class="btn" onclick="abrirModalAdicionar()">+ ADICIONAR ITEM</button>
+                `;
+                // ADICIONADO FILTRO "RECEBER/PAGAR" NA BARRA DE FILTROS
+                filtrosBar.innerHTML = `
+                    <div class="filter-group"><input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar..."></div>
+                    <div class="filter-group">
+                        <select id="filtroAno" onchange="renderizarTabela()">
+                            <option value="">Todos Anos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="filtroMes" onchange="renderizarTabela()">
+                            <option value="">Todos Meses</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="filtroReceberPagar" onchange="renderizarTabela()">
+                            <option value="">Receber / Pagar</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="filtroProduto" oninput="renderizarTabela()" list="datalistFiltroProduto" placeholder="Filtrar Produto...">
+                        <datalist id="datalistFiltroProduto"></datalist>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="filtroLocalPessoa" oninput="renderizarTabela()" list="datalistFiltroLocalPessoa" placeholder="Filtrar Local/Pessoa...">
+                        <datalist id="datalistFiltroLocalPessoa"></datalist>
+                    </div>
+                    <button class="btn btn-sm btn-pendente" id="btnPendentes" onclick="filtrarPendentesMensal()">⏳ Pendentes</button>
+                    <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
+                `;
+            }
+        }
 
         function converterParaNumero(valor) {
             if (valor === null || valor === undefined || valor === '') return 0;
@@ -405,16 +597,43 @@
             return isNaN(num) ? 0 : num;
         }
 
+        function formatarMoedaInput(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor === '') {
+                input.value = '';
+                return;
+            }
+            let num = (parseFloat(valor) / 100).toFixed(2);
+            let partes = num.split('.');
+            partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            input.value = 'R$ ' + partes[0] + ',' + partes[1];
+        }
+
+        function formatarMoedaTabela(valor) {
+            const num = converterParaNumero(valor);
+            return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
         function parseDataParaDateObj(valor) {
             if (!valor) return null;
             const str = valor.toString().trim();
             if (str.includes('/')) {
                 const p = str.split('/');
-                if (p.length === 3) return new Date(p[2], p[1] - 1, p[0]);
+                if (p.length === 3) {
+                    const dia = parseInt(p[0], 10);
+                    const mes = parseInt(p[1], 10) - 1;
+                    const ano = parseInt(p[2], 10);
+                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(ano)) return new Date(ano, mes, dia);
+                }
             }
             if (str.includes('-')) {
                 const p = str.split('T')[0].split('-');
-                if (p.length === 3) return new Date(p[0], p[1] - 1, p[2]);
+                if (p.length === 3) {
+                    const ano = parseInt(p[0], 10);
+                    const mes = parseInt(p[1], 10) - 1;
+                    const dia = parseInt(p[2], 10);
+                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(ano)) return new Date(ano, mes, dia);
+                }
             }
             const dtNum = Number(str);
             if (!isNaN(dtNum) && dtNum > 30000) {
@@ -424,50 +643,44 @@
         }
 
         function formatarDataExibicao(valor) {
+            if (!valor || valor.toString().trim() === '') return '';
             const dt = parseDataParaDateObj(valor);
-            if (!dt || isNaN(dt.getTime())) return valor || '';
+            if (!dt || isNaN(dt.getTime())) {
+                const str = valor.toString().trim();
+                return str.length > 10 ? str.substring(0, 10) : str;
+            }
             const dia = String(dt.getDate()).padStart(2, '0');
             const mes = String(dt.getMonth() + 1).padStart(2, '0');
             const ano = dt.getFullYear();
             return `${dia}/${mes}/${ano}`;
         }
 
-        function formatarMoedaExcel(valor) {
-            const num = converterParaNumero(valor);
-            const numeroFormatado = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            return `<span style="display:flex; justify-content:space-between; width:100%;"><span>R$</span><span>${numeroFormatado}</span></span>`;
-        }
-
-        function formatarSimples(val) {
-            const n = converterParaNumero(val);
-            return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        async function carregarDados(nomeAba = '') {
+        async function carregarDados() {
             const statusEl = document.getElementById('statusNuvem');
             statusEl.innerText = "Sincronizando...";
             try {
-                const url = nomeAba ? `${WEB_APP_URL}?aba=${encodeURIComponent(nomeAba)}` : WEB_APP_URL;
-                const resp = await fetch(url);
-                const jsonResp = await resp.json();
+                const resp = await fetch(`${WEB_APP_URL}?aba=${encodeURIComponent(abaAtual)}`);
+                dadosBrutos = await resp.json();
 
-                if (jsonResp.erro) {
-                    alert(jsonResp.erro);
+                if (dadosBrutos.erro) {
+                    alert(dadosBrutos.erro);
                     statusEl.innerText = "Erro ao carregar";
                     return;
                 }
 
-                dadosBrutos = jsonResp.dados || [];
-                abaSelecionada = jsonResp.abaAtual;
-
-                renderizarBotoesAbas(jsonResp.todasAbas, jsonResp.abaAtual);
-                
-                // Se for a aba Mensal e estiver vazia, injeta o cabeçalho padrão
-                if ((!dadosBrutos || dadosBrutos.length === 0) && abaSelecionada.toLowerCase() === 'mensal') {
-                    dadosBrutos = [CABECALHOS_MENSAL];
+                if (!dadosBrutos || dadosBrutos.length === 0) {
+                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="100%">Planilha vazia.</td></tr>`;
+                    return;
                 }
 
-                popularFiltrosCabecalho();
+                if (abaAtual === 'Dia-a-dia') {
+                    popularFiltrosCabecalho();
+                    preencherOpcoesFormularioModalDiaADia();
+                } else {
+                    popularFiltrosMensal();
+                }
+                
+                construirFormularioModalDinamico();
                 renderizarTabela();
                 statusEl.innerText = "Online";
             } catch (err) {
@@ -476,39 +689,105 @@
             }
         }
 
-        function renderizarBotoesAbas(todasAbas, abaAtual) {
-            const tabsContainer = document.getElementById('tabsNav');
-            if (!todasAbas || todasAbas.length === 0) return;
+        function popularFiltrosMensal() {
+            const selectAno = document.getElementById('filtroAno');
+            const selectMes = document.getElementById('filtroMes');
+            const selectRecPag = document.getElementById('filtroReceberPagar');
+            const datalistProd = document.getElementById('datalistFiltroProduto');
+            const datalistLocal = document.getElementById('datalistFiltroLocalPessoa');
+            if (!selectAno || !selectMes) return;
 
-            tabsContainer.innerHTML = todasAbas.map(nome => {
-                const isActive = nome === abaAtual ? 'active' : '';
-                return `<button class="tab-button ${isActive}" onclick="trocarAba('${nome}')">📄 ${nome}</button>`;
-            }).join('');
-        }
+            const anosSet = new Set();
+            const mesesSet = new Set();
+            const receberPagarSet = new Set();
+            const produtosSet = new Set();
+            const localPessoaSet = new Set();
 
-        function trocarAba(nomeAba) {
-            if (nomeAba === abaSelecionada) return;
-            removerTodosFiltros();
-            carregarDados(nomeAba);
+            const cabecalhos = dadosBrutos[0] || [];
+            let idxAno = -1, idxMes = -1, idxProduto = -1, idxLocal = -1, idxRecPag = -1;
+
+            cabecalhos.forEach((c, i) => {
+                const n = c.toString().toUpperCase().trim();
+                if (n === 'ANO') idxAno = i;
+                if (n === 'MÊS' || n === 'MES') idxMes = i;
+                if (n === 'PRODUTO' || n.includes('PRODUTO')) idxProduto = i;
+                if (n.includes('LOCAL') || n.includes('PESSOA')) idxLocal = i;
+                if (n.includes('RECEBER') || n.includes('PAGAR')) idxRecPag = i;
+            });
+
+            dadosBrutos.slice(1).forEach(r => {
+                if (idxAno !== -1 && r[idxAno]) anosSet.add(r[idxAno].toString().trim());
+                if (idxMes !== -1 && r[idxMes]) mesesSet.add(r[idxMes].toString().trim());
+                if (idxRecPag !== -1 && r[idxRecPag]) receberPagarSet.add(r[idxRecPag].toString().trim());
+                if (idxProduto !== -1 && r[idxProduto]) produtosSet.add(r[idxProduto].toString().trim());
+                if (idxLocal !== -1 && r[idxLocal]) localPessoaSet.add(r[idxLocal].toString().trim());
+            });
+
+            const valorAtualAno = selectAno.value;
+            selectAno.innerHTML = `<option value="">Todos Anos</option>`;
+            Array.from(anosSet).sort().reverse().forEach(ano => {
+                const opt = document.createElement('option');
+                opt.value = ano;
+                opt.innerText = ano;
+                selectAno.appendChild(opt);
+            });
+            selectAno.value = valorAtualAno;
+
+            const ordemMeses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+            const mesesOrdenados = Array.from(mesesSet).sort((a, b) => {
+                let posA = ordemMeses.indexOf(a.toUpperCase());
+                let posB = ordemMeses.indexOf(b.toUpperCase());
+                return (posA !== -1 ? posA : 99) - (posB !== -1 ? posB : 99);
+            });
+
+            const valorAtualMes = selectMes.value;
+            selectMes.innerHTML = `<option value="">Todos Meses</option>`;
+            mesesOrdenados.forEach(mes => {
+                const opt = document.createElement('option');
+                opt.value = mes;
+                opt.innerText = mes;
+                selectMes.appendChild(opt);
+            });
+            selectMes.value = valorAtualMes;
+
+            // PREENCHE OPÇÕES DO FILTRO RECEBER/PAGAR
+            if (selectRecPag) {
+                const valorAtualRecPag = selectRecPag.value;
+                selectRecPag.innerHTML = `<option value="">Receber / Pagar</option>`;
+                Array.from(receberPagarSet).sort().forEach(rp => {
+                    const opt = document.createElement('option');
+                    opt.value = rp;
+                    opt.innerText = rp;
+                    selectRecPag.appendChild(opt);
+                });
+                selectRecPag.value = valorAtualRecPag;
+            }
+
+            if (datalistProd) {
+                datalistProd.innerHTML = Array.from(produtosSet).sort().map(p => `<option value="${p}"></option>`).join('');
+            }
+            if (datalistLocal) {
+                datalistLocal.innerHTML = Array.from(localPessoaSet).sort().map(l => `<option value="${l}"></option>`).join('');
+            }
         }
 
         function popularFiltrosCabecalho() {
-            const statusSet = new Set();
+            const categoriasSet = new Set(), tiposSet = new Set(), statusSet = new Set();
             let temStatusVazio = false;
-            
-            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
-            const colStatusIdx = isMensal ? 17 : 5;
-
             dadosBrutos.slice(1).forEach(row => {
-                const valStatus = row[colStatusIdx];
+                if (row[1]) categoriasSet.add(row[1].toString().trim());
+                if (row[4]) tiposSet.add(row[4].toString().trim());
+                const valStatus = row[5];
                 if (valStatus !== null && valStatus !== undefined && valStatus.toString().trim() !== '') {
                     statusSet.add(valStatus.toString().trim());
                 } else {
                     temStatusVazio = true;
                 }
             });
-
+            preencherSelectFiltro('filtroCategoria', categoriasSet, 'Todas Categorias');
+            preencherSelectFiltro('filtroTipo', tiposSet, 'Todos Tipos');
             const selectStatus = document.getElementById('filtroStatus');
+            if(!selectStatus) return;
             const valorAtualStatus = selectStatus.value;
             selectStatus.innerHTML = `<option value="">Todos Status</option>`;
             if (temStatusVazio) {
@@ -526,11 +805,38 @@
             selectStatus.value = valorAtualStatus;
         }
 
+        function preencherSelectFiltro(id, conjunto, textoPadrao) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            const valorAtual = select.value;
+            select.innerHTML = `<option value="">${textoPadrao}</option>`;
+            Array.from(conjunto).sort().forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.innerText = item;
+                select.appendChild(opt);
+            });
+            select.value = valorAtual;
+        }
+
         function removerTodosFiltros() {
-            document.getElementById('inputPesquisa').value = '';
-            document.getElementById('filtroStatus').value = '';
-            document.getElementById('dataInicio').value = '';
-            document.getElementById('dataFim').value = '';
+            if (abaAtual === 'Dia-a-dia') {
+                document.getElementById('inputPesquisa').value = '';
+                document.getElementById('filtroCategoria').value = '';
+                document.getElementById('filtroTipo').value = '';
+                document.getElementById('filtroStatus').value = '';
+                document.getElementById('dataInicio').value = '';
+                document.getElementById('dataFim').value = '';
+            } else {
+                document.getElementById('inputPesquisa').value = '';
+                document.getElementById('filtroAno').value = '';
+                document.getElementById('filtroMes').value = '';
+                if (document.getElementById('filtroReceberPagar')) document.getElementById('filtroReceberPagar').value = '';
+                document.getElementById('filtroProduto').value = '';
+                document.getElementById('filtroLocalPessoa').value = '';
+                filtroPendenteAtivo = false;
+                atualizarBotoesFiltroAtivo();
+            }
             renderizarTabela();
         }
 
@@ -539,7 +845,6 @@
             const ano = agora.getFullYear();
             const mes = String(agora.getMonth() + 1).padStart(2, '0');
             const ultimoDia = new Date(ano, agora.getMonth() + 1, 0).getDate();
-            
             document.getElementById('dataInicio').value = `${ano}-${mes}-01`;
             document.getElementById('dataFim').value = `${ano}-${mes}-${ultimoDia}`;
             renderizarTabela();
@@ -556,94 +861,360 @@
             renderizarTabela();
         }
 
+        function filtrarPendentesMensal() {
+            filtroPendenteAtivo = !filtroPendenteAtivo;
+            atualizarBotoesFiltroAtivo();
+            renderizarTabela();
+        }
+
+        function atualizarBotoesFiltroAtivo() {
+            const btnP = document.getElementById('btnPendentes');
+            if (!btnP) return;
+            btnP.classList.remove('ativo');
+            if (filtroPendenteAtivo) btnP.classList.add('ativo');
+        }
+
+        function preencherOpcoesFormularioModalDiaADia() {
+            const catSet = new Set(), tipoSet = new Set();
+            dadosBrutos.slice(1).forEach(row => {
+                if (row[1]) catSet.add(row[1].toString().trim());
+                if (row[4]) tipoSet.add(row[4].toString().trim());
+            });
+            preencherSelectModal('fCategoria', catSet, 'Selecione...');
+            preencherSelectModal('fTipo', tipoSet, 'Selecione...');
+        }
+
+        function preencherSelectModal(id, setOpcoes, textoPadrao) {
+            const select = document.getElementById(id);
+            if (!select) return;
+            select.innerHTML = `<option value="">${textoPadrao}</option>`;
+            Array.from(setOpcoes).sort().forEach(op => {
+                const opt = document.createElement('option');
+                opt.value = op;
+                opt.innerText = op;
+                select.appendChild(opt);
+            });
+        }
+
+        function construirFormularioModalDinamico() {
+            const container = document.getElementById('formGridContainer');
+            const cabecalhos = dadosBrutos[0] || [];
+
+            if (abaAtual === 'Dia-a-dia') {
+                container.className = "form-grid";
+                container.innerHTML = `
+                    <div class="form-group"><label>Data</label><input type="date" id="campo_col_0" required></div>
+                    <div class="form-group"><label>Categoria</label><select id="campo_col_1" required><option value="">Carregando...</option></select></div>
+                    <div class="form-group full-width"><label>Descritivo</label><input type="text" id="campo_col_2" placeholder="Digite a descrição..." required></div>
+                    <div class="form-group"><label>Valor (R$)</label><input type="text" id="campo_col_3" placeholder="Ex: 150,00" required></div>
+                    <div class="form-group"><label>Tipo</label><select id="campo_col_4" required><option value="">Carregando...</option></select></div>
+                    <div class="form-group full-width"><label>Status</label><input type="text" id="campo_col_5" placeholder="Ex: Pago, Pendente..." required></div>
+                `;
+                preencherOpcoesFormularioModalDiaADia();
+            } else {
+                container.className = "form-grid dinamico";
+                
+                let idxTipoPgto = -1;
+                let idxProduto = -1;
+
+                cabecalhos.forEach((c, idx) => {
+                    const colUpper = c.toString().toUpperCase().trim();
+                    if (colUpper.includes('TIPO DE PGTO')) idxTipoPgto = idx;
+                    if (colUpper === 'PRODUTO' || colUpper.includes('PRODUTO')) idxProduto = idx;
+                });
+
+                let tiposPgtoSet = new Set();
+                if (idxTipoPgto !== -1) {
+                    dadosBrutos.slice(1).forEach(r => { if(r[idxTipoPgto]) tiposPgtoSet.add(r[idxTipoPgto].toString().trim()); });
+                }
+
+                let produtosSet = new Set();
+                if (idxProduto !== -1) {
+                    dadosBrutos.slice(1).forEach(r => { if(r[idxProduto]) produtosSet.add(r[idxProduto].toString().trim()); });
+                }
+
+                const inputNumParcelasHTML = `
+                    <div class="form-group" style="background:#ecfdf5; padding:6px; border-radius:6px; border:1px solid #a7f3d0;" id="boxGeradorParcelas">
+                        <label style="color:var(--primary);">Nº de Parcelas (Ex: 12x)</label>
+                        <input type="number" id="fQtdParcelas" value="1" min="1" max="60" placeholder="Ex: 12">
+                    </div>
+                `;
+
+                const camposHTML = cabecalhos.map((col, idx) => {
+                    const colNomeUpper = col.toString().toUpperCase().trim();
+                    const isDate = colNomeUpper.includes('DATA');
+                    const isMes = colNomeUpper === 'MÊS' || colNomeUpper === 'MES';
+                    const isValor = colNomeUpper.includes('VALOR');
+                    const isTipoPgto = colNomeUpper.includes('TIPO DE PGTO');
+                    const isProduto = colNomeUpper === 'PRODUTO' || colNomeUpper.includes('PRODUTO');
+
+                    if (isMes) {
+                        return `
+                            <div class="form-group">
+                                <label>${col}</label>
+                                <select id="campo_col_${idx}">
+                                    <option value="">Selecione...</option>
+                                    ${MESES_LISTA.map(m => `<option value="${m}">${m}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    } else if (isTipoPgto) {
+                        const datalistTipoId = `datalist_tipo_${idx}`;
+                        return `
+                            <div class="form-group">
+                                <label>${col}</label>
+                                <input type="text" id="campo_col_${idx}" list="${datalistTipoId}" placeholder="Pesquise ou digite...">
+                                <datalist id="${datalistTipoId}">
+                                    ${Array.from(tiposPgtoSet).sort().map(t => `<option value="${t}"></option>`).join('')}
+                                </datalist>
+                            </div>
+                        `;
+                    } else if (isProduto) {
+                        const datalistProdId = `datalist_prod_${idx}`;
+                        return `
+                            <div class="form-group">
+                                <label>${col}</label>
+                                <input type="text" id="campo_col_${idx}" list="${datalistProdId}" placeholder="Pesquise ou digite...">
+                                <datalist id="${datalistProdId}">
+                                    ${Array.from(produtosSet).sort().map(p => `<option value="${p}"></option>`).join('')}
+                                </datalist>
+                            </div>
+                        `;
+                    } else if (isValor) {
+                        return `
+                            <div class="form-group">
+                                <label>${col}</label>
+                                <input type="text" id="campo_col_${idx}" placeholder="R$ 0,00" oninput="formatarMoedaInput(this)">
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="form-group">
+                                <label>${col}</label>
+                                <input type="${isDate ? 'date' : 'text'}" id="campo_col_${idx}" placeholder="Digite ${col}...">
+                            </div>
+                        `;
+                    }
+                }).join('');
+
+                container.innerHTML = inputNumParcelasHTML + camposHTML;
+            }
+        }
+
         function renderizarTabela() {
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeader');
+            const colGroup = document.getElementById('tableColGroup');
+            const cabecalhos = (dadosBrutos[0] || []).slice();
 
-            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
-            const cabecalhos = isMensal ? CABECALHOS_MENSAL : (dadosBrutos[0] || []);
+            const cabecalhosComAcoes = abaAtual === 'Mensal' ? [...cabecalhos, "Ações"] : cabecalhos;
 
-            thead.innerHTML = `<tr>${cabecalhos.map(col => `<th>${col}</th>`).join('')}</tr>`;
+            thead.innerHTML = `<tr>${cabecalhosComAcoes.map(col => `<th>${col}</th>`).join('')}</tr>`;
+
+            if (abaAtual === 'Dia-a-dia') {
+                colGroup.innerHTML = `<col class="dia-col-1"><col class="dia-col-2"><col class="dia-col-3"><col class="dia-col-4"><col class="dia-col-5"><col class="dia-col-6">`;
+            } else {
+                colGroup.innerHTML = '';
+            }
 
             const textoPesquisa = document.getElementById('inputPesquisa').value.toLowerCase().trim();
-            const filtroSta = document.getElementById('filtroStatus').value;
-            const inputInicio = document.getElementById('dataInicio').value;
-            const inputFim = document.getElementById('dataFim').value;
-            const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
-            const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
+            let linhasFiltradasComIndice = [];
 
-            const colDataIdx = isMensal ? 6 : 0; // Data Adquirido na Mensal
-            const colValorIdx = isMensal ? 9 : 3; // Valor da Parcela na Mensal
-            const colStatusIdx = isMensal ? 17 : 5; // Status na Mensal
+            if (abaAtual === 'Dia-a-dia') {
+                const filtroCat = document.getElementById('filtroCategoria').value;
+                const filtroTip = document.getElementById('filtroTipo').value;
+                const filtroSta = document.getElementById('filtroStatus').value;
+                const inputInicio = document.getElementById('dataInicio').value;
+                const inputFim = document.getElementById('dataFim').value;
+                const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
+                const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
 
-            let linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => ({ row, originalIndex })).filter(item => {
-                const row = item.row;
+                linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => ({ row, originalIndex })).filter(item => {
+                    const row = item.row;
+                    if (dInicio || dFim) {
+                        const dtLinha = parseDataParaDateObj(row[0]);
+                        if (dtLinha) {
+                            if (dInicio && dtLinha < dInicio) return false;
+                            if (dFim && dtLinha > dFim) return false;
+                        } else { return false; }
+                    }
+                    if (filtroCat && row[1] && row[1].toString().trim() !== filtroCat) return false;
+                    if (filtroTip && row[4] && row[4].toString().trim() !== filtroTip) return false;
+                    if (filtroSta !== "") {
+                        const valStatusRow = row[5] !== null && row[5] !== undefined ? row[5].toString().trim() : "";
+                        if (filtroSta === "VAZIO_VAL") {
+                            if (valStatusRow !== "") return false;
+                        } else {
+                            if (valStatusRow !== filtroSta) return false;
+                        }
+                    }
+                    if (textoPesquisa) {
+                        const linhaMatch = row.some(cell => cell !== null && cell !== undefined && cell.toString().toLowerCase().includes(textoPesquisa));
+                        if (!linhaMatch) return false;
+                    }
+                    return true;
+                });
+
+                let somaTotal = 0;
+                let somaStatusC = 0;
+                linhasFiltradasComIndice.forEach(item => {
+                    const valNum = converterParaNumero(item.row[3]);
+                    somaTotal += valNum;
+                    const statusStr = (item.row[5] || '').toString().trim().toUpperCase();
+                    if (statusStr === 'C' || statusStr.includes('C')) {
+                        somaStatusC += valNum;
+                    }
+                });
+
+                document.getElementById('resumoSomaTotal').innerText = formatarMoedaTabela(somaTotal);
+                document.getElementById('resumoQtdLançamentos').innerText = linhasFiltradasComIndice.length;
+                document.getElementById('resumoSomaStatusC').innerText = formatarMoedaTabela(somaStatusC);
+
+            } else {
+                let idxDataPag = -1;
+                let idxStatus = -1;
+                let idxValorParcela = -1;
+                let idxAno = -1;
+                let idxMes = -1;
+                let idxProduto = -1;
+                let idxLocalPessoa = -1;
+                let idxRecPag = -1;
+
+                cabecalhos.forEach((cHeader, index) => {
+                    const colName = cHeader.toString().toUpperCase().trim();
+                    if (colName.includes('DATA DE PAG') || colName.includes('DATA PAG')) idxDataPag = index;
+                    if (colName === 'STATUS') idxStatus = index;
+                    if (colName.includes('VALOR DA PARCELA')) idxValorParcela = index;
+                    if (colName === 'ANO') idxAno = index;
+                    if (colName === 'MÊS' || colName === 'MES') idxMes = index;
+                    if (colName === 'PRODUTO' || colName.includes('PRODUTO')) idxProduto = index;
+                    if (colName.includes('LOCAL') || colName.includes('PESSOA')) idxLocalPessoa = index;
+                    if (colName.includes('RECEBER') || colName.includes('PAGAR')) idxRecPag = index;
+                });
+
+                let somaValorParcelasFiltrado = 0;
+                const filtroAnoVal = document.getElementById('filtroAno').value;
+                const filtroMesVal = document.getElementById('filtroMes').value;
+                const filtroRecPagVal = document.getElementById('filtroReceberPagar') ? document.getElementById('filtroReceberPagar').value : '';
+                const filtroProdVal = document.getElementById('filtroProduto').value.toLowerCase().trim();
+                const filtroLocalVal = document.getElementById('filtroLocalPessoa').value.toLowerCase().trim();
+
+                linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => {
+                    let newRow = [...row];
+                    
+                    if (idxDataPag !== -1 && idxStatus !== -1) {
+                        const valDataPag = newRow[idxDataPag] !== null && newRow[idxDataPag] !== undefined ? newRow[idxDataPag].toString().trim() : '';
+                        if (valDataPag === '') {
+                            newRow[idxStatus] = 'Pendente';
+                        } else {
+                            newRow[idxStatus] = 'Efetuado';
+                        }
+                    }
+
+                    return { row: newRow, originalIndex };
+                }).filter(item => {
+                    const row = item.row;
+                    const stVal = (idxStatus !== -1 ? row[idxStatus] : '').toString().toLowerCase();
+
+                    if (filtroAnoVal && idxAno !== -1) {
+                        if ((row[idxAno] || '').toString().trim() !== filtroAnoVal) return false;
+                    }
+
+                    if (filtroMesVal && idxMes !== -1) {
+                        if ((row[idxMes] || '').toString().trim().toUpperCase() !== filtroMesVal.toUpperCase()) return false;
+                    }
+
+                    // FILTRA PELA COLUNA RECEBER / PAGAR
+                    if (filtroRecPagVal && idxRecPag !== -1) {
+                        if ((row[idxRecPag] || '').toString().trim().toLowerCase() !== filtroRecPagVal.toLowerCase()) return false;
+                    }
+
+                    if (filtroProdVal && idxProduto !== -1) {
+                        const prodStr = (row[idxProduto] || '').toString().toLowerCase();
+                        if (!prodStr.includes(filtroProdVal)) return false;
+                    }
+
+                    if (filtroLocalVal && idxLocalPessoa !== -1) {
+                        const locStr = (row[idxLocalPessoa] || '').toString().toLowerCase();
+                        if (!locStr.includes(filtroLocalVal)) return false;
+                    }
+
+                    if (filtroPendenteAtivo) {
+                        if (stVal !== 'pendente') return false;
+                    }
+
+                    if (textoPesquisa) {
+                        return row.some(cell => cell !== null && cell !== undefined && cell.toString().toLowerCase().includes(textoPesquisa));
+                    }
+                    return true;
+                });
+
+                linhasFiltradasComIndice.forEach(item => {
+                    if (idxValorParcela !== -1) {
+                        somaValorParcelasFiltrado += converterParaNumero(item.row[idxValorParcela]);
+                    }
+                });
+
+                let filtradosEfetuadosCount = 0;
+                linhasFiltradasComIndice.forEach(item => {
+                    const st = (idxStatus !== -1 ? item.row[idxStatus] : '').toString().toLowerCase();
+                    if (st === 'efetuado') filtradosEfetuadosCount++;
+                });
                 
-                if (dInicio || dFim) {
-                    const dtLinha = parseDataParaDateObj(row[colDataIdx]);
-                    if (dtLinha) {
-                        if (dInicio && dtLinha < dInicio) return false;
-                        if (dFim && dtLinha > dFim) return false;
-                    }
+                const parcelasFaltantes = linhasFiltradasComIndice.length - filtradosEfetuadosCount;
+                const parcelaTotal = linhasFiltradasComIndice.length;
+
+                document.getElementById('resumoQtd').innerText = linhasFiltradasComIndice.length;
+                document.getElementById('resumoParcelasFaltantes').innerText = parcelasFaltantes;
+                if (document.getElementById('resumoParcelaTotal')) {
+                    document.getElementById('resumoParcelaTotal').innerText = parcelaTotal;
                 }
-
-                if (filtroSta !== "") {
-                    const valStatusRow = row[colStatusIdx] !== null && row[colStatusIdx] !== undefined ? row[colStatusIdx].toString().trim() : "";
-                    if (filtroSta === "VAZIO_VAL") {
-                        if (valStatusRow !== "") return false;
-                    } else {
-                        if (valStatusRow !== filtroSta) return false;
-                    }
-                }
-
-                if (textoPesquisa) {
-                    const linhaMatch = row.some(cell => {
-                        if (cell === null || cell === undefined) return false;
-                        return cell.toString().toLowerCase().includes(textoPesquisa);
-                    });
-                    if (!linhaMatch) return false;
-                }
-                return true;
-            });
-
-            let somaTotal = 0;
-            let somaStatusC = 0;
-
-            linhasFiltradasComIndice.forEach(item => {
-                const row = item.row;
-                const valNum = converterParaNumero(row[colValorIdx]);
-                somaTotal += valNum;
-                const statusStr = (row[colStatusIdx] || '').toString().trim().toUpperCase();
-                if (statusStr === 'C' || statusStr.includes('C')) {
-                    somaStatusC += valNum;
-                }
-            });
-
-            document.getElementById('resumoSomaTotal').innerText = formatarSimples(somaTotal);
-            document.getElementById('resumoQtdLançamentos').innerText = linhasFiltradasComIndice.length;
-            document.getElementById('resumoSomaStatusC').innerText = formatarSimples(somaStatusC);
+                document.getElementById('resumoSomaParcelas').innerText = formatarMoedaTabela(somaValorParcelasFiltrado);
+            }
 
             tbody.innerHTML = linhasFiltradasComIndice.map((item, indexVisual) => {
                 const row = item.row;
                 const originalIndex = item.originalIndex;
-                const trId = `row-${indexVisual}`;
                 const isSelected = linhasSelecionadasIndices.has(indexVisual) ? 'linha-selecionada' : '';
                 
-                return `<tr id="${trId}" class="${isSelected}" onclick="selecionarLinha(${indexVisual}, event)" ondblclick="abrirModalEditar(${originalIndex})">
-                    ${cabecalhos.map((_, idx) => {
-                        const cell = row[idx];
+                return `<tr class="${isSelected}" onclick="selecionarLinha(${indexVisual}, event)" ondblclick="abrirModalEditar(${originalIndex})">
+                    ${row.map((cell, idx) => {
                         let val = '';
-                        if (isMensal && [6, 7, 8].includes(idx)) {
-                            val = formatarDataExibicao(cell);
-                        } else if (isMensal && [9, 10, 13, 15, 16].includes(idx)) {
-                            val = formatarMoedaExcel(cell);
-                        } else if (!isMensal && idx === 3) {
-                            val = formatarMoedaExcel(cell);
+                        const headerName = (cabecalhos[idx] || '').toString().toUpperCase().trim();
+
+                        if (abaAtual === 'Dia-a-dia') {
+                            if (idx === 0) val = formatarDataExibicao(cell);
+                            else if (idx === 3) val = formatarMoedaTabela(cell);
+                            else val = (cell !== null && cell !== undefined ? cell : '');
                         } else {
-                            val = (cell !== null && cell !== undefined ? cell : '');
+                            if (headerName.includes('DATA')) {
+                                val = formatarDataExibicao(cell);
+                            } else if (headerName.includes('TOTAL') && headerName.includes('PARCELAS')) {
+                                val = cell !== null && cell !== undefined ? cell.toString().trim() : '';
+                            } else if (headerName.includes('VALOR')) {
+                                val = formatarMoedaTabela(cell);
+                            } else if (headerName === 'STATUS') {
+                                const stVal = (cell || '').toString().trim();
+                                const isEfetuado = stVal.toLowerCase() === 'efetuado';
+                                val = `<span class="badge-status ${isEfetuado ? 'badge-efetuado' : 'badge-pendente'}">${stVal}</span>`;
+                            } else if (headerName.includes('OBS') || headerName.includes('COMPROVAN')) {
+                                const strVal = (cell || '').toString().trim();
+                                if (strVal.startsWith('http://') || strVal.startsWith('https://')) {
+                                    val = `<a href="${strVal}" target="_blank" onclick="event.stopPropagation();" style="color:var(--primary); text-decoration:underline;">🔗 Ver Link</a>`;
+                                } else {
+                                    val = strVal;
+                                }
+                            } else {
+                                val = (cell !== null && cell !== undefined ? cell : '');
+                            }
                         }
-                        return `<td title="${val}">${val}</td>`;
+                        return `<td title="${abaAtual === 'Dia-a-dia' && idx === 3 ? '' : (typeof cell === 'string' ? cell : val)}">${val}</td>`;
                     }).join('')}
+                    ${abaAtual === 'Mensal' ? `
+                        <td>
+                            <button class="btn-action-edit" onclick="event.stopPropagation(); abrirModalEditar(${originalIndex})">✏️ Editar</button>
+                        </td>
+                    ` : ''}
                 </tr>`;
             }).join('');
         }
@@ -651,14 +1222,18 @@
         function selecionarLinha(index, event) {
             const isCtrlPressed = event.ctrlKey || event.metaKey;
             const isShiftPressed = event.shiftKey;
+
             if (isShiftPressed && ultimoIndiceClicado !== null) {
                 const inicio = Math.min(ultimoIndiceClicado, index);
                 const fim = Math.max(ultimoIndiceClicado, index);
                 if (!isCtrlPressed) { linhasSelecionadasIndices.clear(); }
                 for (let i = inicio; i <= fim; i++) { linhasSelecionadasIndices.add(i); }
             } else if (isCtrlPressed) {
-                if (linhasSelecionadasIndices.has(index)) { linhasSelecionadasIndices.delete(index); }
-                else { linhasSelecionadasIndices.add(index); }
+                if (linhasSelecionadasIndices.has(index)) {
+                    linhasSelecionadasIndices.delete(index);
+                } else {
+                    linhasSelecionadasIndices.add(index);
+                }
                 ultimoIndiceClicado = index;
             } else {
                 linhasSelecionadasIndices.clear();
@@ -668,44 +1243,16 @@
             renderizarTabela();
         }
 
-        function construirFormularioModal(rowData = null) {
-            const grid = document.getElementById('modalFormGrid');
-            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
-            const cabecalhos = isMensal ? CABECALHOS_MENSAL : ["Data", "Categoria", "Descritivo", "Valor", "Tipo", "Status"];
-
-            grid.innerHTML = cabecalhos.map((col, idx) => {
-                const valorAtual = rowData ? (rowData[idx] || '') : '';
-                let isFullWidth = (col.includes('OBS') || col === 'PRODUTO') ? 'full-width' : '';
-
-                if (col.includes('DATA')) {
-                    let dtFormatted = '';
-                    if (valorAtual) {
-                        const dtObj = parseDataParaDateObj(valorAtual);
-                        if (dtObj && !isNaN(dtObj.getTime())) {
-                            dtFormatted = `${dtObj.getFullYear()}-${String(dtObj.getMonth() + 1).padStart(2, '0')}-${String(dtObj.getDate()).padStart(2, '0')}`;
-                        }
-                    }
-                    return `
-                        <div class="form-group ${isFullWidth}">
-                            <label>${col}</label>
-                            <input type="date" id="f_col_${idx}" value="${dtFormatted}">
-                        </div>`;
-                }
-
-                return `
-                    <div class="form-group ${isFullWidth}">
-                        <label>${col}</label>
-                        <input type="text" id="f_col_${idx}" value="${valorAtual}" placeholder="${col}">
-                    </div>`;
-            }).join('');
-        }
-
         function abrirModalAdicionar() {
             document.getElementById('dataForm').reset();
             document.getElementById('fIndiceOriginal').value = "";
-            document.getElementById('modalTitulo').innerText = "Adicionar Item - (" + abaSelecionada + ")";
-            document.getElementById('btnSalvarModal').innerText = "Salvar Registro";
-            construirFormularioModal();
+            document.getElementById('modalTitulo').innerText = abaAtual === 'Dia-a-dia' ? "Adicionar Item (Dia-a-dia)" : "Adicionar Item (PARCELAMENTOS)";
+            document.getElementById('btnSalvarModal').innerText = abaAtual === 'Dia-a-dia' ? "Salvar no Topo" : "Salvar Registro";
+            document.getElementById('btnDeletarModal').style.display = 'none';
+
+            const boxGerador = document.getElementById('boxGeradorParcelas');
+            if (boxGerador) boxGerador.style.display = 'flex';
+
             document.getElementById('modalOverlay').style.display = 'flex';
         }
 
@@ -714,11 +1261,86 @@
             if (!rowData) return;
 
             document.getElementById('fIndiceOriginal').value = originalIndex + 2;
-            document.getElementById('modalTitulo').innerText = "Editar Registro - (" + abaSelecionada + ")";
+            document.getElementById('modalTitulo').innerText = abaAtual === 'Dia-a-dia' ? "Editar Lançamento" : "Editar Lançamento (PARCELAMENTOS)";
             document.getElementById('btnSalvarModal').innerText = "Atualizar Registro";
-            
-            construirFormularioModal(rowData);
+            document.getElementById('btnDeletarModal').style.display = 'inline-block';
+
+            const boxGerador = document.getElementById('boxGeradorParcelas');
+            if (boxGerador) boxGerador.style.display = 'none';
+
+            const cabecalhos = dadosBrutos[0] || [];
+            if (abaAtual === 'Dia-a-dia') {
+                const dtObj = parseDataParaDateObj(rowData[0]);
+                if (dtObj && !isNaN(dtObj.getTime())) {
+                    const ano = dtObj.getFullYear();
+                    const mes = String(dtObj.getMonth() + 1).padStart(2, '0');
+                    const dia = String(dtObj.getDate()).padStart(2, '0');
+                    document.getElementById('campo_col_0').value = `${ano}-${mes}-${dia}`;
+                } else {
+                    document.getElementById('campo_col_0').value = '';
+                }
+                document.getElementById('campo_col_1').value = rowData[1] || '';
+                document.getElementById('campo_col_2').value = rowData[2] || '';
+                document.getElementById('campo_col_3').value = rowData[3] || '';
+                document.getElementById('campo_col_4').value = rowData[4] || '';
+                document.getElementById('campo_col_5').value = rowData[5] || '';
+            } else {
+                cabecalhos.forEach((col, idx) => {
+                    const campo = document.getElementById(`campo_col_${idx}`);
+                    if (campo) {
+                        const colNomeUpper = col.toString().toUpperCase().trim();
+                        if (colNomeUpper.includes('DATA')) {
+                            const dtObj = parseDataParaDateObj(rowData[idx]);
+                            if (dtObj && !isNaN(dtObj.getTime())) {
+                                const ano = dtObj.getFullYear();
+                                const mes = String(dtObj.getMonth() + 1).padStart(2, '0');
+                                const dia = String(dtObj.getDate()).padStart(2, '0');
+                                campo.value = `${ano}-${mes}-${dia}`;
+                            } else {
+                                campo.value = '';
+                            }
+                        } else if (colNomeUpper.includes('VALOR')) {
+                            const valNum = converterParaNumero(rowData[idx]);
+                            if (valNum > 0) {
+                                campo.value = 'R$ ' + valNum.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            } else {
+                                campo.value = '';
+                            }
+                        } else {
+                            campo.value = rowData[idx] !== undefined ? rowData[idx] : '';
+                        }
+                    }
+                });
+            }
+
             document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        async function deletarRegistroAtualModal() {
+            const linhaOriginal = document.getElementById('fIndiceOriginal').value;
+            if (!linhaOriginal) return;
+
+            if (!confirm("Tem certeza que deseja deletar este registro permanentemente da planilha?")) return;
+
+            const payload = {
+                aba: abaAtual,
+                acao: "DELETAR",
+                linha: linhaOriginal
+            };
+
+            document.getElementById('statusNuvem').innerText = "Deletando...";
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                fecharModal();
+                setTimeout(carregarDados, 1000);
+            } catch (err) {
+                console.error("Erro ao deletar:", err);
+                alert("Erro ao deletar registro.");
+            }
         }
 
         function fecharModal() {
@@ -727,38 +1349,166 @@
 
         async function salvarRegistro(event) {
             event.preventDefault();
-            const isMensal = abaSelecionada.toLowerCase() === 'mensal';
-            const totalCols = isMensal ? 18 : 6;
             const linhaEditando = document.getElementById('fIndiceOriginal').value;
+            const cabecalhos = dadosBrutos[0] || [];
 
-            const payload = {
-                aba: abaSelecionada,
-                acao: linhaEditando ? "EDITAR" : "INSERIR",
-                linha: linhaEditando || ""
-            };
-
-            for (let i = 0; i < totalCols; i++) {
-                const el = document.getElementById(`f_col_${i}`);
-                let val = el ? el.value : '';
-                if (el && el.type === 'date' && val.includes('-')) {
-                    const p = val.split('-');
-                    val = `${p[2]}/${p[1]}/${p[0]}`;
+            if (abaAtual === 'Dia-a-dia') {
+                const dataInput = document.getElementById('campo_col_0').value;
+                let dataFormatada = dataInput;
+                if (dataInput && dataInput.includes('-')) {
+                    const p = dataInput.split('-');
+                    dataFormatada = `${p[2]}/${p[1]}/${p[0]}`;
                 }
-                payload[`col${i + 1}`] = val;
-            }
 
-            document.getElementById('statusNuvem').innerText = "Salvando...";
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                fecharModal();
-                setTimeout(() => carregarDados(abaSelecionada), 1200);
-            } catch (err) {
-                console.error("Erro ao salvar:", err);
-                alert("Erro ao salvar dados.");
+                const payload = {
+                    aba: abaAtual,
+                    acao: linhaEditando ? "EDITAR" : "INSERIR",
+                    linha: linhaEditando || "",
+                    col1: dataFormatada,
+                    col2: document.getElementById('campo_col_1').value,
+                    col3: document.getElementById('campo_col_2').value,
+                    col4: document.getElementById('campo_col_3').value,
+                    col5: document.getElementById('campo_col_4').value,
+                    col6: document.getElementById('campo_col_5').value
+                };
+
+                document.getElementById('statusNuvem').innerText = "Salvando...";
+                try {
+                    await fetch(WEB_APP_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(payload)
+                    });
+                    fecharModal();
+                    setTimeout(carregarDados, 1200);
+                } catch (err) {
+                    console.error("Erro ao salvar:", err);
+                    alert("Erro ao salvar dados.");
+                }
+            } else {
+                const qtdParcelasInput = document.getElementById('fQtdParcelas');
+                const qtdParcelas = (!linhaEditando && qtdParcelasInput) ? parseInt(qtdParcelasInput.value) || 1 : 1;
+
+                if (linhaEditando || qtdParcelas <= 1) {
+                    const payload = {
+                        aba: abaAtual,
+                        acao: linhaEditando ? "EDITAR" : "INSERIR",
+                        linha: linhaEditando || ""
+                    };
+
+                    cabecalhos.forEach((col, idx) => {
+                        const campo = document.getElementById(`campo_col_${idx}`);
+                        let valInput = campo ? campo.value : '';
+                        const colNomeUpper = col.toString().toUpperCase().trim();
+
+                        if (colNomeUpper.includes('DATA') && valInput && valInput.includes('-')) {
+                            const p = valInput.split('-');
+                            valInput = `${p[2]}/${p[1]}/${p[0]}`;
+                        } else if (colNomeUpper.includes('VALOR')) {
+                            valInput = converterParaNumero(valInput);
+                        }
+
+                        payload[`col${idx + 1}`] = valInput;
+                    });
+
+                    document.getElementById('statusNuvem').innerText = "Salvando...";
+                    try {
+                        await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payload)
+                        });
+                        fecharModal();
+                        setTimeout(carregarDados, 1200);
+                    } catch (err) {
+                        console.error("Erro ao salvar:", err);
+                        alert("Erro ao salvar dados.");
+                    }
+
+                } else {
+                    let baseValores = {};
+                    let idxAno = -1, idxMes = -1, idxDataFech = -1, idxParcela = -1, idxTotalParcelas = -1;
+
+                    cabecalhos.forEach((col, idx) => {
+                        const campo = document.getElementById(`campo_col_${idx}`);
+                        let valInput = campo ? campo.value : '';
+                        const colNomeUpper = col.toString().toUpperCase().trim();
+
+                        if (colNomeUpper === 'ANO') idxAno = idx;
+                        if (colNomeUpper === 'MÊS' || colNomeUpper === 'MES') idxMes = idx;
+                        if (colNomeUpper.includes('DATA FECH')) idxDataFech = idx;
+                        if (colNomeUpper === 'PARCELA') idxParcela = idx;
+                        if (colNomeUpper.includes('TOTAL') && colNomeUpper.includes('PARCELAS')) idxTotalParcelas = idx;
+
+                        if (colNomeUpper.includes('DATA') && valInput && valInput.includes('-')) {
+                            const p = valInput.split('-');
+                            valInput = `${p[2]}/${p[1]}/${p[0]}`;
+                        } else if (colNomeUpper.includes('VALOR')) {
+                            valInput = converterParaNumero(valInput);
+                        }
+
+                        baseValores[idx] = valInput;
+                    });
+
+                    let itensPayload = [];
+                    let anoAtual = parseInt(baseValores[idxAno]) || new Date().getFullYear();
+                    let mesInicialStr = baseValores[idxMes] || 'Jan';
+                    let idxMesAtualIndex = MESES_LISTA.findIndex(m => m.toLowerCase() === mesInicialStr.toString().toLowerCase());
+                    if (idxMesAtualIndex === -1) idxMesAtualIndex = 0;
+
+                    let dtFechObj = parseDataParaDateObj(baseValores[idxDataFech]);
+
+                    for (let p = 1; p <= qtdParcelas; p++) {
+                        let itemPayload = {};
+
+                        cabecalhos.forEach((_, idx) => {
+                            itemPayload[`col${idx + 1}`] = baseValores[idx];
+                        });
+
+                        if (idxParcela !== -1) {
+                            itemPayload[`col${idxParcela + 1}`] = p;
+                        }
+
+                        if (idxTotalParcelas !== -1) {
+                            itemPayload[`col${idxTotalParcelas + 1}`] = qtdParcelas;
+                        }
+
+                        let mIndex = (idxMesAtualIndex + (p - 1)) % 12;
+                        let anosMais = Math.floor((idxMesAtualIndex + (p - 1)) / 12);
+                        let anoCalculado = anoAtual + anosMais;
+
+                        if (idxMes !== -1) itemPayload[`col${idxMes + 1}`] = MESES_LISTA[mIndex];
+                        if (idxAno !== -1) itemPayload[`col${idxAno + 1}`] = anoCalculado;
+
+                        if (idxDataFech !== -1 && dtFechObj) {
+                            let tempDt = new Date(dtFechObj.getFullYear(), dtFechObj.getMonth() + (p - 1), dtFechObj.getDate());
+                            let diaF = String(tempDt.getDate()).padStart(2, '0');
+                            let mesF = String(tempDt.getMonth() + 1).padStart(2, '0');
+                            let anoF = tempDt.getFullYear();
+                            itemPayload[`col${idxDataFech + 1}`] = `${diaF}/${mesF}/${anoF}`;
+                        }
+
+                        itensPayload.push(itemPayload);
+                    }
+
+                    document.getElementById('statusNuvem').innerText = `Gerando ${qtdParcelas} parcelas...`;
+                    try {
+                        await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                aba: abaAtual,
+                                acao: "INSERIR_LOTE",
+                                itens: itensPayload
+                            })
+                        });
+                        fecharModal();
+                        setTimeout(carregarDados, 1500);
+                    } catch (err) {
+                        console.error("Erro ao salvar lote:", err);
+                        alert("Erro ao salvar parcelas.");
+                    }
+                }
             }
         }
     </script>
