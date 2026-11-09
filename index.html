@@ -67,7 +67,7 @@
 
         .cards-grid {
             display: flex;
-            gap: 24px;
+            gap: 20px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -76,12 +76,12 @@
             background: #ffffff;
             border: 1px solid var(--border-line);
             border-radius: 12px;
-            padding: 30px;
-            width: 260px;
+            padding: 25px;
+            width: 210px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
@@ -94,20 +94,20 @@
         }
 
         .card-icon {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             border-radius: 10px;
             background: #ecfdf5;
             color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
         }
 
         .lobby-card h3 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--text-main);
         }
 
@@ -292,13 +292,87 @@
             overflow-x: hidden;
         }
 
+        /* Estilos específicos para o painel de gráficos */
+        .graficos-container {
+            flex: 1;
+            width: 100vw;
+            background: #f8fafc;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .graficos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .grafico-card {
+            background: #ffffff;
+            border: 1px solid var(--border-line);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .grafico-card h3 {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-line);
+            padding-bottom: 8px;
+        }
+
+        .chart-bars-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chart-bar-row {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .chart-bar-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .chart-bar-track {
+            width: 100%;
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.78rem;
         }
 
-        table.tabela-mensal {
+        table.tabela-mensal, table.tabela-programado {
             table-layout: fixed;
             width: 100%;
         }
@@ -320,7 +394,8 @@
             vertical-align: middle;
         }
 
-        table.tabela-mensal th, table.tabela-mensal td {
+        table.tabela-mensal th, table.tabela-mensal td,
+        table.tabela-programado th, table.tabela-programado td {
             font-size: 0.72rem;
             padding: 6px 4px;
         }
@@ -435,7 +510,15 @@
             </div>
             <div class="lobby-card" onclick="selecionarAba('Mensal')">
                 <div class="card-icon">📊</div>
-                <h3>Mensal</h3>
+                <h3>Parcelamentos</h3>
+            </div>
+            <div class="lobby-card" onclick="selecionarAba('Programado')">
+                <div class="card-icon">⏰</div>
+                <h3>Programado</h3>
+            </div>
+            <div class="lobby-card" onclick="selecionarAba('Graficos')">
+                <div class="card-icon">📈</div>
+                <h3>Gráficos</h3>
             </div>
         </div>
     </div>
@@ -445,7 +528,7 @@
             <div class="header-controls">
                 <div class="header-left">
                     <button class="btn btn-outline btn-sm" onclick="voltarParaLobby()">← Voltar ao Lobby</button>
-                    <span class="titulo-aba-atual" id="nomeAbaAtual">PARCELAMENTOS</span>
+                    <span class="titulo-aba-atual" id="nomeAbaAtual">GRÁFICOS</span>
                     <span id="statusNuvem">Sincronizando...</span>
                 </div>
             </div>
@@ -454,7 +537,7 @@
         <div class="resumo-bar" id="resumoBarContainer"></div>
         <div class="filters-bar" id="filtrosBarContainer"></div>
 
-        <div class="table-container">
+        <div class="table-container" id="tableContainerWrapper">
             <table id="mainTable">
                 <colgroup id="tableColGroup"></colgroup>
                 <thead id="tableHeader"></thead>
@@ -492,20 +575,26 @@
         let ultimoIndiceClicado = null;
         let abaAtual = 'Dia-a-dia';
         let filtroPendenteAtivo = false;
+        let filtroSemPagamentoProgAtivo = false;
 
         const MESES_LISTA = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
         function selecionarAba(nomeAba) {
             abaAtual = nomeAba;
-            document.getElementById('nomeAbaAtual').innerText = abaAtual === 'Mensal' ? 'PARCELAMENTOS' : 'Dia-a-dia';
+            if (abaAtual === 'Mensal') document.getElementById('nomeAbaAtual').innerText = 'PARCELAMENTOS';
+            else if (abaAtual === 'Programado') document.getElementById('nomeAbaAtual').innerText = 'PROGRAMADO';
+            else if (abaAtual === 'Graficos') document.getElementById('nomeAbaAtual').innerText = 'GRÁFICOS (BASE DIA-A-DIA)';
+            else document.getElementById('nomeAbaAtual').innerText = 'Dia-a-dia';
+
             document.getElementById('lobbyContainer').style.display = 'none';
             document.getElementById('painelContainer').style.display = 'flex';
 
             const tableEl = document.getElementById('mainTable');
+            tableEl.classList.remove('tabela-mensal', 'tabela-programado');
             if (abaAtual === 'Mensal') {
                 tableEl.classList.add('tabela-mensal');
-            } else {
-                tableEl.classList.remove('tabela-mensal');
+            } else if (abaAtual === 'Programado') {
+                tableEl.classList.add('tabela-programado');
             }
 
             montarLayoutEspecificoAba();
@@ -520,6 +609,48 @@
         function montarLayoutEspecificoAba() {
             const resumoBar = document.getElementById('resumoBarContainer');
             const filtrosBar = document.getElementById('filtrosBarContainer');
+            const wrapper = document.getElementById('tableContainerWrapper');
+
+            if (abaAtual === 'Graficos') {
+                resumoBar.innerHTML = `
+                    <div class="resumo-cards-left">
+                        <div class="resumo-card"><span class="card-title">Total Filtrado (Gráfico)</span><span class="card-value" id="resumoGraficoTotal">R$ 0,00</span></div>
+                        <div class="resumo-card"><span class="card-title">Qtd. Itens Analisados</span><span class="card-value" id="resumoGraficoQtd">0</span></div>
+                    </div>
+                `;
+                filtrosBar.innerHTML = `
+                    <div class="filter-group"><select id="filtroGraficoCategoria" onchange="renderizarGraficos()"><option value="">Todas Categorias</option></select></div>
+                    <div class="filter-group"><select id="filtroGraficoTipo" onchange="renderizarGraficos()"><option value="">Todos Tipos</option></select></div>
+                    <div class="filter-group"><input type="date" id="filtroGraficoInicio" onchange="renderizarGraficos()"><span>até</span><input type="date" id="filtroGraficoFim" onchange="renderizarGraficos()"></div>
+                    <button class="btn btn-sm" onclick="filtrarGraficoMesAtual()">📅 Mês Atual</button>
+                    <button class="btn-outline btn btn-sm" onclick="removerFiltrosGrafico()">✕ Limpar Filtros</button>
+                `;
+                wrapper.innerHTML = `
+                    <div class="graficos-container" id="painelGraficosDinamicos">
+                        <div class="graficos-grid">
+                            <div class="grafico-card">
+                                <h3>Gastos por Categoria</h3>
+                                <div class="chart-bars-wrapper" id="chartCategoria"></div>
+                            </div>
+                            <div class="grafico-card">
+                                <h3>Gastos por Tipo</h3>
+                                <div class="chart-bars-wrapper" id="chartTipo"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            } else {
+                if (!document.getElementById('mainTable')) {
+                    wrapper.innerHTML = `
+                        <table id="mainTable">
+                            <colgroup id="tableColGroup"></colgroup>
+                            <thead id="tableHeader"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    `;
+                }
+            }
 
             if (abaAtual === 'Dia-a-dia') {
                 resumoBar.innerHTML = `
@@ -528,7 +659,10 @@
                         <div class="resumo-card"><span class="card-title">Qtd. Lançamentos</span><span class="card-value" id="resumoQtdLançamentos">0</span></div>
                         <div class="resumo-card"><span class="card-title">Total Status "C"</span><span class="card-value" id="resumoSomaStatusC">R$ 0,00</span></div>
                     </div>
-                    <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm" style="background: #475569;" onclick="removerCPassados()">🧹 Limpar "C" Antigos</button>
+                        <button class="btn" onclick="abrirModalAdicionar()">+ Adicionar Item</button>
+                    </div>
                 `;
                 filtrosBar.innerHTML = `
                     <div class="filter-group"><input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar..."></div>
@@ -540,8 +674,46 @@
                     <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
                     <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
                 `;
-            } else {
-                // ADICIONADO CARD "PARCELA TOTAL" AO LADO DE "PARCELAS FALTANTES"
+            } else if (abaAtual === 'Programado') {
+                resumoBar.innerHTML = `
+                    <div class="resumo-cards-left">
+                        <div class="resumo-card" style="border-color: var(--primary);"><span class="card-title" style="color: var(--primary);">Total Filtrado</span><span class="card-value" id="resumoSomaParcelas" style="color: var(--primary);">R$ 0,00</span></div>
+                        <div class="resumo-card"><span class="card-title">Quantidade Filtrada</span><span class="card-value" id="resumoQtdFiltrada">0</span></div>
+                    </div>
+                    <button class="btn" onclick="abrirModalAdicionar()">+ ADICIONAR ITEM</button>
+                `;
+                filtrosBar.innerHTML = `
+                    <div class="filter-group"><input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar..."></div>
+                    <div class="filter-group">
+                        <select id="filtroTipoProgramado" onchange="renderizarTabela()">
+                            <option value="">Todos Tipos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="filtroMesProgramado" onchange="renderizarTabela()">
+                            <option value="">Todos Meses</option>
+                            <option value="1">Janeiro</option>
+                            <option value="2">Fevereiro</option>
+                            <option value="3">Março</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Maio</option>
+                            <option value="6">Junho</option>
+                            <option value="7">Julho</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Setembro</option>
+                            <option value="10">Outubro</option>
+                            <option value="11">Novembro</option>
+                            <option value="12">Dezembro</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="text" id="filtroProduto" oninput="renderizarTabela()" list="datalistFiltroProduto" placeholder="Filtrar Produto...">
+                        <datalist id="datalistFiltroProduto"></datalist>
+                    </div>
+                    <button class="btn btn-sm btn-pendente" id="btnSemPagamentoProg" onclick="filtrarSemPagamentoProgramado()">⏳ Sem Pgto</button>
+                    <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
+                `;
+            } else if (abaAtual === 'Mensal') {
                 resumoBar.innerHTML = `
                     <div class="resumo-cards-left">
                         <div class="resumo-card"><span class="card-title">Qtd. Registros</span><span class="card-value" id="resumoQtd">0</span></div>
@@ -551,7 +723,6 @@
                     </div>
                     <button class="btn" onclick="abrirModalAdicionar()">+ ADICIONAR ITEM</button>
                 `;
-                // ADICIONADO FILTRO "RECEBER/PAGAR" NA BARRA DE FILTROS
                 filtrosBar.innerHTML = `
                     <div class="filter-group"><input type="text" id="inputPesquisa" oninput="renderizarTabela()" placeholder="Pesquisar..."></div>
                     <div class="filter-group">
@@ -580,6 +751,30 @@
                     <button class="btn btn-sm btn-pendente" id="btnPendentes" onclick="filtrarPendentesMensal()">⏳ Pendentes</button>
                     <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
                 `;
+            }
+        }
+
+        async function removerCPassados() {
+            if (!confirm("Tem certeza que deseja remover a letra 'C' dos lançamentos de meses anteriores ao atual?")) {
+                return;
+            }
+
+            const payload = {
+                aba: "Dia-a-dia",
+                acao: "REMOVER_C_PASSADOS"
+            };
+
+            document.getElementById('statusNuvem').innerText = "Atualizando...";
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                setTimeout(carregarDados, 1000);
+            } catch (err) {
+                console.error("Erro ao remover C:", err);
+                alert("Erro ao processar solicitação.");
             }
         }
 
@@ -659,7 +854,9 @@
             const statusEl = document.getElementById('statusNuvem');
             statusEl.innerText = "Sincronizando...";
             try {
-                const resp = await fetch(`${WEB_APP_URL}?aba=${encodeURIComponent(abaAtual)}`);
+                // Sempre puxa os dados base da aba "Dia-a-dia" para os gráficos ou tabelas
+                const abaBusca = (abaAtual === 'Graficos') ? 'Dia-a-dia' : abaAtual;
+                const resp = await fetch(`${WEB_APP_URL}?aba=${encodeURIComponent(abaBusca)}`);
                 dadosBrutos = await resp.json();
 
                 if (dadosBrutos.erro) {
@@ -669,23 +866,166 @@
                 }
 
                 if (!dadosBrutos || dadosBrutos.length === 0) {
-                    document.getElementById('tableBody').innerHTML = `<tr><td colspan="100%">Planilha vazia.</td></tr>`;
+                    if (abaAtual !== 'Graficos') {
+                        document.getElementById('tableBody').innerHTML = `<tr><td colspan="100%">Planilha vazia.</td></tr>`;
+                    }
                     return;
                 }
 
                 if (abaAtual === 'Dia-a-dia') {
                     popularFiltrosCabecalho();
                     preencherOpcoesFormularioModalDiaADia();
-                } else {
+                    renderizarTabela();
+                } else if (abaAtual === 'Programado') {
+                    popularFiltrosProgramado();
+                    renderizarTabela();
+                } else if (abaAtual === 'Mensal') {
                     popularFiltrosMensal();
+                    renderizarTabela();
+                } else if (abaAtual === 'Graficos') {
+                    popularFiltrosGrafico();
+                    renderizarGraficos();
                 }
                 
-                construirFormularioModalDinamico();
-                renderizarTabela();
                 statusEl.innerText = "Online";
             } catch (err) {
                 console.error("Erro:", err);
                 statusEl.innerText = "Erro de conexão";
+            }
+        }
+
+        function popularFiltrosGrafico() {
+            const catSet = new Set(), tipoSet = new Set();
+            dadosBrutos.slice(1).forEach(row => {
+                if (row[1]) catSet.add(row[1].toString().trim());
+                if (row[4]) tipoSet.add(row[4].toString().trim());
+            });
+            preencherSelectFiltro('filtroGraficoCategoria', catSet, 'Todas Categorias');
+            preencherSelectFiltro('filtroGraficoTipo', tipoSet, 'Todos Tipos');
+        }
+
+        function filtrarGraficoMesAtual() {
+            const agora = new Date();
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const ultimoDia = new Date(ano, agora.getMonth() + 1, 0).getDate();
+            document.getElementById('filtroGraficoInicio').value = `${ano}-${mes}-01`;
+            document.getElementById('filtroGraficoFim').value = `${ano}-${mes}-${ultimoDia}`;
+            renderizarGraficos();
+        }
+
+        function removerFiltrosGrafico() {
+            document.getElementById('filtroGraficoCategoria').value = '';
+            document.getElementById('filtroGraficoTipo').value = '';
+            document.getElementById('filtroGraficoInicio').value = '';
+            document.getElementById('filtroGraficoFim').value = '';
+            renderizarGraficos();
+        }
+
+        function renderizarGraficos() {
+            const filtroCat = document.getElementById('filtroGraficoCategoria').value;
+            const filtroTip = document.getElementById('filtroGraficoTipo').value;
+            const inputInicio = document.getElementById('filtroGraficoInicio').value;
+            const inputFim = document.getElementById('filtroGraficoFim').value;
+            const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
+            const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
+
+            const linhasFiltradas = dadosBrutos.slice(1).filter(row => {
+                if (dInicio || dFim) {
+                    const dtLinha = parseDataParaDateObj(row[0]);
+                    if (dtLinha) {
+                        if (dInicio && dtLinha < dInicio) return false;
+                        if (dFim && dtLinha > dFim) return false;
+                    } else { return false; }
+                }
+                if (filtroCat && row[1] && row[1].toString().trim() !== filtroCat) return false;
+                if (filtroTip && row[4] && row[4].toString().trim() !== filtroTip) return false;
+                return true;
+            });
+
+            let somaTotalGeral = 0;
+            let mapCategoria = {};
+            let mapTipo = {};
+
+            linhasFiltradas.forEach(row => {
+                const val = converterParaNumero(row[3]);
+                somaTotalGeral += val;
+
+                const cat = (row[1] || 'Indefinido').toString().trim();
+                mapCategoria[cat] = (mapCategoria[cat] || 0) + val;
+
+                const tip = (row[4] || 'Indefinido').toString().trim();
+                mapTipo[tip] = (mapTipo[tip] || 0) + val;
+            });
+
+            document.getElementById('resumoGraficoTotal').innerText = formatarMoedaTabela(somaTotalGeral);
+            document.getElementById('resumoGraficoQtd').innerText = linhasFiltradas.length;
+
+            montarBarrasGrafico('chartCategoria', mapCategoria, somaTotalGeral);
+            montarBarrasGrafico('chartTipo', mapTipo, somaTotalGeral);
+        }
+
+        function montarBarrasGrafico(containerId, mapaDados, totalGeral) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const chaves = Object.keys(mapaDados).sort((a, b) => mapaDados[b] - mapaDados[a]);
+
+            if (chaves.length === 0) {
+                container.innerHTML = `<p style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:15px;">Nenhum dado encontrado para os filtros aplicados.</p>`;
+                return;
+            }
+
+            container.innerHTML = chaves.map(chave => {
+                const valor = mapaDados[chave];
+                const percentual = totalGeral > 0 ? Math.min(100, Math.max(2, (valor / totalGeral) * 100)) : 0;
+                return `
+                    <div class="chart-bar-row">
+                        <div class="chart-bar-info">
+                            <span>${chave}</span>
+                            <span>${formatarMoedaTabela(valor)} (${percentual.toFixed(1)}%)</span>
+                        </div>
+                        <div class="chart-bar-track">
+                            <div class="chart-bar-fill" style="width: ${percentual}%;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function popularFiltrosProgramado() {
+            const selectTipo = document.getElementById('filtroTipoProgramado');
+            const datalistProd = document.getElementById('datalistFiltroProduto');
+            if (!selectTipo) return;
+
+            const tiposSet = new Set();
+            const produtosSet = new Set();
+            const cabecalhos = dadosBrutos[0] || [];
+            let idxTipo = -1, idxProduto = -1;
+
+            cabecalhos.forEach((c, i) => {
+                const n = c.toString().toUpperCase().trim();
+                if (n === 'TIPO') idxTipo = i;
+                if (n === 'PRODUTO' || n.includes('PRODUTO')) idxProduto = i;
+            });
+
+            dadosBrutos.slice(1).forEach(r => {
+                if (idxTipo !== -1 && r[idxTipo]) tiposSet.add(r[idxTipo].toString().trim());
+                if (idxProduto !== -1 && r[idxProduto]) produtosSet.add(r[idxProduto].toString().trim());
+            });
+
+            const valorAtualTipo = selectTipo.value;
+            selectTipo.innerHTML = `<option value="">Todos Tipos</option>`;
+            Array.from(tiposSet).sort().forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t;
+                opt.innerText = t;
+                selectTipo.appendChild(opt);
+            });
+            selectTipo.value = valorAtualTipo;
+
+            if (datalistProd) {
+                datalistProd.innerHTML = Array.from(produtosSet).sort().map(p => `<option value="${p}"></option>`).join('');
             }
         }
 
@@ -750,7 +1090,6 @@
             });
             selectMes.value = valorAtualMes;
 
-            // PREENCHE OPÇÕES DO FILTRO RECEBER/PAGAR
             if (selectRecPag) {
                 const valorAtualRecPag = selectRecPag.value;
                 selectRecPag.innerHTML = `<option value="">Receber / Pagar</option>`;
@@ -827,6 +1166,13 @@
                 document.getElementById('filtroStatus').value = '';
                 document.getElementById('dataInicio').value = '';
                 document.getElementById('dataFim').value = '';
+            } else if (abaAtual === 'Programado') {
+                document.getElementById('inputPesquisa').value = '';
+                if (document.getElementById('filtroTipoProgramado')) document.getElementById('filtroTipoProgramado').value = '';
+                if (document.getElementById('filtroMesProgramado')) document.getElementById('filtroMesProgramado').value = '';
+                document.getElementById('filtroProduto').value = '';
+                filtroSemPagamentoProgAtivo = false;
+                atualizarBotoesFiltroAtivo();
             } else {
                 document.getElementById('inputPesquisa').value = '';
                 document.getElementById('filtroAno').value = '';
@@ -867,24 +1213,36 @@
             renderizarTabela();
         }
 
-        function atualizarBotoesFiltroAtivo() {
-            const btnP = document.getElementById('btnPendentes');
-            if (!btnP) return;
-            btnP.classList.remove('ativo');
-            if (filtroPendenteAtivo) btnP.classList.add('ativo');
+        function filtrarSemPagamentoProgramado() {
+            filtroSemPagamentoProgAtivo = !filtroSemPagamentoProgAtivo;
+            atualizarBotoesFiltroAtivo();
+            renderizarTabela();
         }
 
-        function preencherOpcoesFormularioModalDiaADia() {
+        function atualizarBotoesFiltroAtivo() {
+            const btnP = document.getElementById('btnPendentes');
+            if (btnP) {
+                btnP.classList.remove('ativo');
+                if (filtroPendenteAtivo) btnP.classList.add('ativo');
+            }
+            const btnSp = document.getElementById('btnSemPagamentoProg');
+            if (btnSp) {
+                btnSp.classList.remove('ativo');
+                if (filtroSemPagamentoProgAtivo) btnSp.classList.add('ativo');
+            }
+        }
+
+        function preencherOpcoesFormularioModalDiaADia(catSelecionada = '', tipoSelecionado = '') {
             const catSet = new Set(), tipoSet = new Set();
             dadosBrutos.slice(1).forEach(row => {
                 if (row[1]) catSet.add(row[1].toString().trim());
                 if (row[4]) tipoSet.add(row[4].toString().trim());
             });
-            preencherSelectModal('fCategoria', catSet, 'Selecione...');
-            preencherSelectModal('fTipo', tipoSet, 'Selecione...');
+            preencherSelectModal('campo_col_1', catSet, 'Selecione...', catSelecionada);
+            preencherSelectModal('campo_col_4', tipoSet, 'Selecione...', tipoSelecionado);
         }
 
-        function preencherSelectModal(id, setOpcoes, textoPadrao) {
+        function preencherSelectModal(id, setOpcoes, textoPadrao, valorSelecionado = '') {
             const select = document.getElementById(id);
             if (!select) return;
             select.innerHTML = `<option value="">${textoPadrao}</option>`;
@@ -894,6 +1252,9 @@
                 opt.innerText = op;
                 select.appendChild(opt);
             });
+            if (valorSelecionado) {
+                select.value = valorSelecionado;
+            }
         }
 
         function construirFormularioModalDinamico() {
@@ -904,10 +1265,10 @@
                 container.className = "form-grid";
                 container.innerHTML = `
                     <div class="form-group"><label>Data</label><input type="date" id="campo_col_0" required></div>
-                    <div class="form-group"><label>Categoria</label><select id="campo_col_1" required><option value="">Carregando...</option></select></div>
+                    <div class="form-group"><label>Categoria</label><select id="campo_col_1" required><option value="">Selecione...</option></select></div>
                     <div class="form-group full-width"><label>Descritivo</label><input type="text" id="campo_col_2" placeholder="Digite a descrição..." required></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="text" id="campo_col_3" placeholder="Ex: 150,00" required></div>
-                    <div class="form-group"><label>Tipo</label><select id="campo_col_4" required><option value="">Carregando...</option></select></div>
+                    <div class="form-group"><label>Tipo</label><select id="campo_col_4" required><option value="">Selecione...</option></select></div>
                     <div class="form-group full-width"><label>Status</label><input type="text" id="campo_col_5" placeholder="Ex: Pago, Pendente..." required></div>
                 `;
                 preencherOpcoesFormularioModalDiaADia();
@@ -919,7 +1280,7 @@
 
                 cabecalhos.forEach((c, idx) => {
                     const colUpper = c.toString().toUpperCase().trim();
-                    if (colUpper.includes('TIPO DE PGTO')) idxTipoPgto = idx;
+                    if (colUpper.includes('TIPO DE PGTO') || colUpper === 'TIPO') idxTipoPgto = idx;
                     if (colUpper === 'PRODUTO' || colUpper.includes('PRODUTO')) idxProduto = idx;
                 });
 
@@ -933,19 +1294,27 @@
                     dadosBrutos.slice(1).forEach(r => { if(r[idxProduto]) produtosSet.add(r[idxProduto].toString().trim()); });
                 }
 
-                const inputNumParcelasHTML = `
-                    <div class="form-group" style="background:#ecfdf5; padding:6px; border-radius:6px; border:1px solid #a7f3d0;" id="boxGeradorParcelas">
-                        <label style="color:var(--primary);">Nº de Parcelas (Ex: 12x)</label>
-                        <input type="number" id="fQtdParcelas" value="1" min="1" max="60" placeholder="Ex: 12">
-                    </div>
-                `;
+                let inputNumParcelasHTML = '';
+                if (abaAtual === 'Mensal' || abaAtual === 'Programado') {
+                    inputNumParcelasHTML = `
+                        <div class="form-group" style="background:#ecfdf5; padding:6px; border-radius:6px; border:1px solid #a7f3d0;" id="boxGeradorParcelas">
+                            <label style="color:var(--primary);">Nº de Parcelas (Ex: 12x)</label>
+                            <input type="number" id="fQtdParcelas" value="1" min="1" max="60" placeholder="Ex: 12">
+                        </div>
+                    `;
+                }
 
                 const camposHTML = cabecalhos.map((col, idx) => {
                     const colNomeUpper = col.toString().toUpperCase().trim();
+                    
+                    if (abaAtual === 'Mensal' && colNomeUpper === 'STATUS') {
+                        return '';
+                    }
+
                     const isDate = colNomeUpper.includes('DATA');
                     const isMes = colNomeUpper === 'MÊS' || colNomeUpper === 'MES';
                     const isValor = colNomeUpper.includes('VALOR');
-                    const isTipoPgto = colNomeUpper.includes('TIPO DE PGTO');
+                    const isTipoPgto = colNomeUpper.includes('TIPO DE PGTO') || colNomeUpper === 'TIPO';
                     const isProduto = colNomeUpper === 'PRODUTO' || colNomeUpper.includes('PRODUTO');
 
                     if (isMes) {
@@ -1002,12 +1371,14 @@
         }
 
         function renderizarTabela() {
+            if (abaAtual === 'Graficos') return;
+
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeader');
             const colGroup = document.getElementById('tableColGroup');
             const cabecalhos = (dadosBrutos[0] || []).slice();
 
-            const cabecalhosComAcoes = abaAtual === 'Mensal' ? [...cabecalhos, "Ações"] : cabecalhos;
+            const cabecalhosComAcoes = [...cabecalhos, "Ações"];
 
             thead.innerHTML = `<tr>${cabecalhosComAcoes.map(col => `<th>${col}</th>`).join('')}</tr>`;
 
@@ -1070,6 +1441,70 @@
                 document.getElementById('resumoQtdLançamentos').innerText = linhasFiltradasComIndice.length;
                 document.getElementById('resumoSomaStatusC').innerText = formatarMoedaTabela(somaStatusC);
 
+            } else if (abaAtual === 'Programado') {
+                let idxDataProg = -1, idxValor = -1, idxTipo = -1, idxProduto = -1, idxDataPagProg = -1;
+                cabecalhos.forEach((cHeader, index) => {
+                    const colName = cHeader.toString().toUpperCase().trim();
+                    if (colName === 'DATA' || (colName.includes('DATA') && !colName.includes('PAG'))) idxDataProg = index;
+                    if (colName.includes('VALOR')) idxValor = index;
+                    if (colName === 'TIPO') idxTipo = index;
+                    if (colName === 'PRODUTO' || colName.includes('PRODUTO')) idxProduto = index;
+                    if (colName.includes('DATA PAG') || colName.includes('DATA DE PAG')) idxDataPagProg = index;
+                });
+
+                let somaValorFiltrado = 0;
+                const filtroTipoVal = document.getElementById('filtroTipoProgramado') ? document.getElementById('filtroTipoProgramado').value : '';
+                const filtroMesValProg = document.getElementById('filtroMesProgramado') ? document.getElementById('filtroMesProgramado').value : '';
+                const filtroProdVal = document.getElementById('filtroProduto').value.toLowerCase().trim();
+
+                linhasFiltradasComIndice = dadosBrutos.slice(1).map((row, originalIndex) => {
+                    return { row: [...row], originalIndex };
+                }).filter(item => {
+                    const row = item.row;
+
+                    if (filtroSemPagamentoProgAtivo && idxDataPagProg !== -1) {
+                        const valDataPag = (row[idxDataPagProg] || '').toString().trim();
+                        if (valDataPag !== '') return false;
+                    }
+
+                    if (filtroTipoVal && idxTipo !== -1) {
+                        if ((row[idxTipo] || '').toString().trim() !== filtroTipoVal) return false;
+                    }
+                    if (filtroMesValProg && idxDataProg !== -1) {
+                        const dtObj = parseDataParaDateObj(row[idxDataProg]);
+                        if (!dtObj || isNaN(dtObj.getTime())) return false;
+                        const mesNum = dtObj.getMonth() + 1;
+                        if (mesNum.toString() !== filtroMesValProg) return false;
+                    }
+                    if (filtroProdVal && idxProduto !== -1) {
+                        const prodStr = (row[idxProduto] || '').toString().toLowerCase();
+                        if (!prodStr.includes(filtroProdVal)) return false;
+                    }
+                    if (textoPesquisa) {
+                        return row.some(cell => cell !== null && cell !== undefined && cell.toString().toLowerCase().includes(textoPesquisa));
+                    }
+                    return true;
+                });
+
+                if (idxValor !== -1) {
+                    linhasFiltradasComIndice.sort((a, b) => {
+                        const valA = converterParaNumero(a.row[idxValor]);
+                        const valB = converterParaNumero(b.row[idxValor]);
+                        return valA - valB;
+                    });
+                }
+
+                linhasFiltradasComIndice.forEach(item => {
+                    if (idxValor !== -1) {
+                        somaValorFiltrado += converterParaNumero(item.row[idxValor]);
+                    }
+                });
+
+                document.getElementById('resumoSomaParcelas').innerText = formatarMoedaTabela(somaValorFiltrado);
+                if (document.getElementById('resumoQtdFiltrada')) {
+                    document.getElementById('resumoQtdFiltrada').innerText = linhasFiltradasComIndice.length;
+                }
+
             } else {
                 let idxDataPag = -1;
                 let idxStatus = -1;
@@ -1124,7 +1559,6 @@
                         if ((row[idxMes] || '').toString().trim().toUpperCase() !== filtroMesVal.toUpperCase()) return false;
                     }
 
-                    // FILTRA PELA COLUNA RECEBER / PAGAR
                     if (filtroRecPagVal && idxRecPag !== -1) {
                         if ((row[idxRecPag] || '').toString().trim().toLowerCase() !== filtroRecPagVal.toLowerCase()) return false;
                     }
@@ -1210,11 +1644,9 @@
                         }
                         return `<td title="${abaAtual === 'Dia-a-dia' && idx === 3 ? '' : (typeof cell === 'string' ? cell : val)}">${val}</td>`;
                     }).join('')}
-                    ${abaAtual === 'Mensal' ? `
-                        <td>
-                            <button class="btn-action-edit" onclick="event.stopPropagation(); abrirModalEditar(${originalIndex})">✏️ Editar</button>
-                        </td>
-                    ` : ''}
+                    <td>
+                        <button class="btn-action-edit" onclick="event.stopPropagation(); abrirModalEditar(${originalIndex})">✏️ Editar</button>
+                    </td>
                 </tr>`;
             }).join('');
         }
@@ -1246,12 +1678,20 @@
         function abrirModalAdicionar() {
             document.getElementById('dataForm').reset();
             document.getElementById('fIndiceOriginal').value = "";
-            document.getElementById('modalTitulo').innerText = abaAtual === 'Dia-a-dia' ? "Adicionar Item (Dia-a-dia)" : "Adicionar Item (PARCELAMENTOS)";
+            if (abaAtual === 'Dia-a-dia') {
+                document.getElementById('modalTitulo').innerText = "Adicionar Item (Dia-a-dia)";
+                preencherOpcoesFormularioModalDiaADia();
+            } else if (abaAtual === 'Programado') {
+                document.getElementById('modalTitulo').innerText = "Adicionar Item (PROGRAMADO)";
+            } else {
+                document.getElementById('modalTitulo').innerText = "Adicionar Item (PARCELAMENTOS)";
+            }
+
             document.getElementById('btnSalvarModal').innerText = abaAtual === 'Dia-a-dia' ? "Salvar no Topo" : "Salvar Registro";
             document.getElementById('btnDeletarModal').style.display = 'none';
 
             const boxGerador = document.getElementById('boxGeradorParcelas');
-            if (boxGerador) boxGerador.style.display = 'flex';
+            if (boxGerador) boxGerador.style.display = (abaAtual === 'Mensal' || abaAtual === 'Programado') ? 'flex' : 'none';
 
             document.getElementById('modalOverlay').style.display = 'flex';
         }
@@ -1261,7 +1701,10 @@
             if (!rowData) return;
 
             document.getElementById('fIndiceOriginal').value = originalIndex + 2;
-            document.getElementById('modalTitulo').innerText = abaAtual === 'Dia-a-dia' ? "Editar Lançamento" : "Editar Lançamento (PARCELAMENTOS)";
+            if (abaAtual === 'Dia-a-dia') document.getElementById('modalTitulo').innerText = "Editar Lançamento";
+            else if (abaAtual === 'Programado') document.getElementById('modalTitulo').innerText = "Editar Lançamento (PROGRAMADO)";
+            else document.getElementById('modalTitulo').innerText = "Editar Lançamento (PARCELAMENTOS)";
+
             document.getElementById('btnSalvarModal').innerText = "Atualizar Registro";
             document.getElementById('btnDeletarModal').style.display = 'inline-block';
 
@@ -1279,11 +1722,14 @@
                 } else {
                     document.getElementById('campo_col_0').value = '';
                 }
-                document.getElementById('campo_col_1').value = rowData[1] || '';
-                document.getElementById('campo_col_2').value = rowData[2] || '';
-                document.getElementById('campo_col_3').value = rowData[3] || '';
-                document.getElementById('campo_col_4').value = rowData[4] || '';
-                document.getElementById('campo_col_5').value = rowData[5] || '';
+                
+                const catValor = rowData[1] !== undefined ? rowData[1].toString().trim() : '';
+                const tipoValor = rowData[4] !== undefined ? rowData[4].toString().trim() : '';
+                preencherOpcoesFormularioModalDiaADia(catValor, tipoValor);
+
+                document.getElementById('campo_col_2').value = rowData[2] !== undefined ? rowData[2] : '';
+                document.getElementById('campo_col_3').value = rowData[3] !== undefined ? rowData[3] : '';
+                document.getElementById('campo_col_5').value = rowData[5] !== undefined ? rowData[5] : '';
             } else {
                 cabecalhos.forEach((col, idx) => {
                     const campo = document.getElementById(`campo_col_${idx}`);
@@ -1317,15 +1763,15 @@
         }
 
         async function deletarRegistroAtualModal() {
-            const linhaOriginal = document.getElementById('fIndiceOriginal').value;
-            if (!linhaOriginal) return;
+            const linhaEditando = document.getElementById('fIndiceOriginal').value;
+            if (!linhaEditando) return;
 
             if (!confirm("Tem certeza que deseja deletar este registro permanentemente da planilha?")) return;
 
             const payload = {
                 aba: abaAtual,
                 acao: "DELETAR",
-                linha: linhaOriginal
+                linha: linhaEditando
             };
 
             document.getElementById('statusNuvem').innerText = "Deletando...";
@@ -1385,6 +1831,107 @@
                     console.error("Erro ao salvar:", err);
                     alert("Erro ao salvar dados.");
                 }
+            } else if (abaAtual === 'Programado') {
+                const qtdParcelasInput = document.getElementById('fQtdParcelas');
+                const qtdParcelas = (!linhaEditando && qtdParcelasInput) ? parseInt(qtdParcelasInput.value) || 1 : 1;
+
+                if (linhaEditando || qtdParcelas <= 1) {
+                    const payload = {
+                        aba: abaAtual,
+                        acao: linhaEditando ? "EDITAR" : "INSERIR",
+                        linha: linhaEditando || ""
+                    };
+
+                    cabecalhos.forEach((col, idx) => {
+                        const campo = document.getElementById(`campo_col_${idx}`);
+                        let valInput = campo ? campo.value : '';
+                        const colNomeUpper = col.toString().toUpperCase().trim();
+
+                        if (colNomeUpper.includes('DATA') && valInput && valInput.includes('-')) {
+                            const p = valInput.split('-');
+                            valInput = `${p[2]}/${p[1]}/${p[0]}`;
+                        } else if (colNomeUpper.includes('VALOR')) {
+                            valInput = converterParaNumero(valInput);
+                        }
+
+                        payload[`col${idx + 1}`] = valInput;
+                    });
+
+                    document.getElementById('statusNuvem').innerText = "Salvando...";
+                    try {
+                        await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payload)
+                        });
+                        fecharModal();
+                        setTimeout(carregarDados, 1200);
+                    } catch (err) {
+                        console.error("Erro ao salvar:", err);
+                        alert("Erro ao salvar dados.");
+                    }
+                } else {
+                    let baseValores = {};
+                    let idxDataProgModal = -1;
+
+                    cabecalhos.forEach((col, idx) => {
+                        const campo = document.getElementById(`campo_col_${idx}`);
+                        let valInput = campo ? campo.value : '';
+                        const colNomeUpper = col.toString().toUpperCase().trim();
+
+                        if ((colNomeUpper === 'DATA' || (colNomeUpper.includes('DATA') && !colNomeUpper.includes('PAG'))) && idxDataProgModal === -1) {
+                            idxDataProgModal = idx;
+                        }
+
+                        if (colNomeUpper.includes('DATA') && valInput && valInput.includes('-')) {
+                            const p = valInput.split('-');
+                            valInput = `${p[2]}/${p[1]}/${p[0]}`;
+                        } else if (colNomeUpper.includes('VALOR')) {
+                            valInput = converterParaNumero(valInput);
+                        }
+
+                        baseValores[idx] = valInput;
+                    });
+
+                    let itensPayload = [];
+                    let dtObjBase = parseDataParaDateObj(baseValores[idxDataProgModal]);
+
+                    for (let p = 1; p <= qtdParcelas; p++) {
+                        let itemPayload = {};
+                        cabecalhos.forEach((_, idx) => {
+                            itemPayload[`col${idx + 1}`] = baseValores[idx];
+                        });
+
+                        if (idxDataProgModal !== -1 && dtObjBase) {
+                            let tempDt = new Date(dtObjBase.getFullYear(), dtObjBase.getMonth() + (p - 1), dtObjBase.getDate());
+                            let diaF = String(tempDt.getDate()).padStart(2, '0');
+                            let mesF = String(tempDt.getMonth() + 1).padStart(2, '0');
+                            let anoF = tempDt.getFullYear();
+                            itemPayload[`col${idxDataProgModal + 1}`] = `${diaF}/${mesF}/${anoF}`;
+                        }
+
+                        itensPayload.push(itemPayload);
+                    }
+
+                    document.getElementById('statusNuvem').innerText = `Gerando ${qtdParcelas} parcelas...`;
+                    try {
+                        await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                aba: abaAtual,
+                                acao: "INSERIR_LOTE",
+                                itens: itensPayload
+                            })
+                        });
+                        fecharModal();
+                        setTimeout(carregarDados, 1500);
+                    } catch (err) {
+                        console.error("Erro ao salvar lote:", err);
+                        alert("Erro ao salvar parcelas.");
+                    }
+                }
+
             } else {
                 const qtdParcelasInput = document.getElementById('fQtdParcelas');
                 const qtdParcelas = (!linhaEditando && qtdParcelasInput) ? parseInt(qtdParcelasInput.value) || 1 : 1;
