@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Financeiro - Lobby</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -67,7 +68,7 @@
 
         .cards-grid {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -76,12 +77,12 @@
             background: #ffffff;
             border: 1px solid var(--border-line);
             border-radius: 12px;
-            padding: 25px;
-            width: 210px;
+            padding: 30px;
+            width: 240px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
@@ -94,20 +95,20 @@
         }
 
         .card-icon {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 10px;
             background: #ecfdf5;
             color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: bold;
         }
 
         .lobby-card h3 {
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: var(--text-main);
         }
 
@@ -226,7 +227,8 @@
         }
 
         .filter-group input[type="text"] {
-            width: 130px;
+            width: 95px;
+            text-align: center;
         }
 
         .btn {
@@ -272,18 +274,6 @@
         }
         .btn-action-edit:hover { background: #cbd5e1; }
 
-        .btn-pendente {
-            background: #d97706;
-            color: white;
-            border: 2px solid transparent;
-        }
-        .btn-pendente:hover { background: #b45309; }
-        .btn-pendente.ativo {
-            border-color: #0f172a;
-            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.4);
-            font-weight: 700;
-        }
-
         .table-container {
             flex: 1;
             width: 100vw;
@@ -292,78 +282,115 @@
             overflow-x: hidden;
         }
 
-        /* Estilos específicos para o painel de gráficos */
+        /* Estilos do Dashboard de Gráficos */
         .graficos-container {
+            display: none;
             flex: 1;
             width: 100vw;
             background: #f8fafc;
             overflow-y: auto;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
             gap: 20px;
+            flex-direction: column;
         }
 
         .graficos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .grafico-card {
             background: #ffffff;
             border: 1px solid var(--border-line);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
             gap: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .grafico-card.full-width {
+            grid-column: span 2;
+        }
+
+        .grafico-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-line);
+            padding-bottom: 10px;
         }
 
         .grafico-card h3 {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: var(--text-main);
             font-weight: 700;
-            border-bottom: 1px solid var(--border-line);
-            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
-        .chart-bars-wrapper {
+        .grafico-subtitulo {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 270px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .top-gastos-lista {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-height: 300px;
+            gap: 8px;
             overflow-y: auto;
+            max-height: 270px;
         }
 
-        .chart-bar-row {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .chart-bar-info {
+        .top-gasto-item {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
+            align-items: center;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .top-gasto-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-width: 70%;
+        }
+
+        .top-gasto-desc {
+            font-size: 0.8rem;
             font-weight: 600;
-        }
-
-        .chart-bar-track {
-            width: 100%;
-            height: 12px;
-            background: #f1f5f9;
-            border-radius: 6px;
+            color: var(--text-main);
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .chart-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            border-radius: 6px;
-            transition: width 0.4s ease;
+        .top-gasto-meta {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .top-gasto-valor {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
         }
 
         table {
@@ -392,12 +419,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: middle;
-        }
-
-        table.tabela-mensal th, table.tabela-mensal td,
-        table.tabela-programado th, table.tabela-programado td {
-            font-size: 0.72rem;
-            padding: 6px 4px;
         }
 
         thead th {
@@ -468,11 +489,6 @@
             gap: 10px;
         }
 
-        .form-grid.dinamico {
-            display: flex;
-            flex-direction: column;
-        }
-
         .form-group {
             display: flex;
             flex-direction: column;
@@ -496,7 +512,7 @@
         #statusNuvem { font-size: 0.72rem; color: var(--text-muted); font-weight: 500; }
     </style>
 </head>
-<body>
+<body lang="pt-BR">
 
     <div class="lobby-container" id="lobbyContainer">
         <div class="lobby-title">
@@ -516,7 +532,7 @@
                 <div class="card-icon">⏰</div>
                 <h3>Programado</h3>
             </div>
-            <div class="lobby-card" onclick="selecionarAba('Graficos')">
+            <div class="lobby-card" onclick="selecionarAba('Gráficos')">
                 <div class="card-icon">📈</div>
                 <h3>Gráficos</h3>
             </div>
@@ -528,7 +544,7 @@
             <div class="header-controls">
                 <div class="header-left">
                     <button class="btn btn-outline btn-sm" onclick="voltarParaLobby()">← Voltar ao Lobby</button>
-                    <span class="titulo-aba-atual" id="nomeAbaAtual">GRÁFICOS</span>
+                    <span class="titulo-aba-atual" id="nomeAbaAtual">PARCELAMENTOS</span>
                     <span id="statusNuvem">Sincronizando...</span>
                 </div>
             </div>
@@ -543,6 +559,45 @@
                 <thead id="tableHeader"></thead>
                 <tbody id="tableBody"></tbody>
             </table>
+        </div>
+
+        <div class="graficos-container" id="graficosContainerView">
+            <div class="graficos-grid">
+                <div class="grafico-card full-width">
+                    <div class="grafico-card-header">
+                        <h3>Evolução de Gastos Diários</h3>
+                        <span class="grafico-subtitulo" id="subtituloEvolucao">Tendência de despesas no período</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartEvolucaoDiaria"></canvas>
+                    </div>
+                </div>
+                <div class="grafico-card">
+                    <div class="grafico-card-header">
+                        <h3>Gastos por Categoria</h3>
+                        <span class="grafico-subtitulo">Distribuição percentual</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartCategorias"></canvas>
+                    </div>
+                </div>
+                <div class="grafico-card" id="cardComparativoContainer" style="display: none;">
+                    <div class="grafico-card-header">
+                        <h3>Comparativo com o Mês Anterior</h3>
+                        <span class="grafico-subtitulo" id="subtituloComparativo">Período atual vs. equivalência anterior</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chartComparativoMes"></canvas>
+                    </div>
+                </div>
+                <div class="grafico-card full-width">
+                    <div class="grafico-card-header">
+                        <h3>Maiores Despesas do Período</h3>
+                        <span class="grafico-subtitulo">Top 5 lançamentos de maior valor</span>
+                    </div>
+                    <div class="top-gastos-lista" id="listaTopGastos"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -577,24 +632,40 @@
         let filtroPendenteAtivo = false;
         let filtroSemPagamentoProgAtivo = false;
 
+        let chartEvolucao = null;
+        let chartCat = null;
+        let chartComp = null;
+
         const MESES_LISTA = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const PALETA_CORES = ['#059669', '#2563eb', '#d97706', '#dc2626', '#7c3aed', '#db2777', '#0891b2', '#4f46e5', '#65a30d', '#ea580c'];
 
         function selecionarAba(nomeAba) {
             abaAtual = nomeAba;
             if (abaAtual === 'Mensal') document.getElementById('nomeAbaAtual').innerText = 'PARCELAMENTOS';
             else if (abaAtual === 'Programado') document.getElementById('nomeAbaAtual').innerText = 'PROGRAMADO';
-            else if (abaAtual === 'Graficos') document.getElementById('nomeAbaAtual').innerText = 'GRÁFICOS (BASE DIA-A-DIA)';
+            else if (abaAtual === 'Gráficos') document.getElementById('nomeAbaAtual').innerText = 'GRÁFICOS (DIA-A-DIA)';
             else document.getElementById('nomeAbaAtual').innerText = 'Dia-a-dia';
 
             document.getElementById('lobbyContainer').style.display = 'none';
             document.getElementById('painelContainer').style.display = 'flex';
 
             const tableEl = document.getElementById('mainTable');
+            const tableWrapper = document.getElementById('tableContainerWrapper');
+            const graficosView = document.getElementById('graficosContainerView');
+
             tableEl.classList.remove('tabela-mensal', 'tabela-programado');
-            if (abaAtual === 'Mensal') {
-                tableEl.classList.add('tabela-mensal');
-            } else if (abaAtual === 'Programado') {
-                tableEl.classList.add('tabela-programado');
+
+            if (abaAtual === 'Gráficos') {
+                tableWrapper.style.display = 'none';
+                graficosView.style.display = 'flex';
+            } else {
+                tableWrapper.style.display = 'block';
+                graficosView.style.display = 'none';
+                if (abaAtual === 'Mensal') {
+                    tableEl.classList.add('tabela-mensal');
+                } else if (abaAtual === 'Programado') {
+                    tableEl.classList.add('tabela-programado');
+                }
             }
 
             montarLayoutEspecificoAba();
@@ -609,50 +680,29 @@
         function montarLayoutEspecificoAba() {
             const resumoBar = document.getElementById('resumoBarContainer');
             const filtrosBar = document.getElementById('filtrosBarContainer');
-            const wrapper = document.getElementById('tableContainerWrapper');
 
-            if (abaAtual === 'Graficos') {
+            if (abaAtual === 'Gráficos') {
                 resumoBar.innerHTML = `
                     <div class="resumo-cards-left">
-                        <div class="resumo-card"><span class="card-title">Total Filtrado (Gráfico)</span><span class="card-value" id="resumoGraficoTotal">R$ 0,00</span></div>
-                        <div class="resumo-card"><span class="card-title">Qtd. Itens Analisados</span><span class="card-value" id="resumoGraficoQtd">0</span></div>
+                        <div class="resumo-card" style="border-color: var(--primary);"><span class="card-title" style="color: var(--primary);">Total no Período</span><span class="card-value" id="resumoGraficoTotal" style="color: var(--primary);">R$ 0,00</span></div>
+                        <div class="resumo-card"><span class="card-title">Qtd. Lançamentos</span><span class="card-value" id="resumoGraficoQtd">0</span></div>
+                        <div class="resumo-card"><span class="card-title">Média Diária (Dias c/ Gasto)</span><span class="card-value" id="resumoGraficoMediaDiaria">R$ 0,00</span></div>
+                        <div class="resumo-card"><span class="card-title">Maior Categoria</span><span class="card-value" id="resumoGraficoMaiorCat">-</span></div>
                     </div>
                 `;
                 filtrosBar.innerHTML = `
-                    <div class="filter-group"><select id="filtroGraficoCategoria" onchange="renderizarGraficos()"><option value="">Todas Categorias</option></select></div>
-                    <div class="filter-group"><select id="filtroGraficoTipo" onchange="renderizarGraficos()"><option value="">Todos Tipos</option></select></div>
-                    <div class="filter-group"><input type="date" id="filtroGraficoInicio" onchange="renderizarGraficos()"><span>até</span><input type="date" id="filtroGraficoFim" onchange="renderizarGraficos()"></div>
-                    <button class="btn btn-sm" onclick="filtrarGraficoMesAtual()">📅 Mês Atual</button>
-                    <button class="btn-outline btn btn-sm" onclick="removerFiltrosGrafico()">✕ Limpar Filtros</button>
-                `;
-                wrapper.innerHTML = `
-                    <div class="graficos-container" id="painelGraficosDinamicos">
-                        <div class="graficos-grid">
-                            <div class="grafico-card">
-                                <h3>Gastos por Categoria</h3>
-                                <div class="chart-bars-wrapper" id="chartCategoria"></div>
-                            </div>
-                            <div class="grafico-card">
-                                <h3>Gastos por Tipo</h3>
-                                <div class="chart-bars-wrapper" id="chartTipo"></div>
-                            </div>
-                        </div>
+                    <div class="filter-group">
+                        <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted);">Período:</span>
+                        <input type="date" lang="pt-BR" id="dataInicioGrafico" onchange="atualizarGraficos()">
+                        <span>até</span>
+                        <input type="date" lang="pt-BR" id="dataFimGrafico" onchange="atualizarGraficos()">
                     </div>
+                    <div class="filter-group"><select id="filtroStatusGrafico" onchange="atualizarGraficos()"><option value="">Todos Status</option></select></div>
+                    <button class="btn btn-sm" onclick="filtrarMesAtualGraficos()">📅 Mês Atual</button>
+                    <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarUltimos30DiasGraficos()">🗓️ Últimos 30 Dias</button>
+                    <button class="btn-outline btn btn-sm" onclick="removerTodosFiltrosGraficos()">✕ Todo o Histórico</button>
                 `;
-                return;
-            } else {
-                if (!document.getElementById('mainTable')) {
-                    wrapper.innerHTML = `
-                        <table id="mainTable">
-                            <colgroup id="tableColGroup"></colgroup>
-                            <thead id="tableHeader"></thead>
-                            <tbody id="tableBody"></tbody>
-                        </table>
-                    `;
-                }
-            }
-
-            if (abaAtual === 'Dia-a-dia') {
+            } else if (abaAtual === 'Dia-a-dia') {
                 resumoBar.innerHTML = `
                     <div class="resumo-cards-left">
                         <div class="resumo-card"><span class="card-title">Soma Total</span><span class="card-value" id="resumoSomaTotal">R$ 0,00</span></div>
@@ -669,7 +719,12 @@
                     <div class="filter-group"><select id="filtroCategoria" onchange="renderizarTabela()"><option value="">Todas Categorias</option></select></div>
                     <div class="filter-group"><select id="filtroTipo" onchange="renderizarTabela()"><option value="">Todos Tipos</option></select></div>
                     <div class="filter-group"><select id="filtroStatus" onchange="renderizarTabela()"><option value="">Todos Status</option></select></div>
-                    <div class="filter-group"><input type="date" id="dataInicio" onchange="renderizarTabela()"><span>até</span><input type="date" id="dataFim" onchange="renderizarTabela()"></div>
+                    <div class="filter-group">
+                        <span style="font-size:0.72rem; font-weight:600; color:var(--text-muted);">Período:</span>
+                        <input type="date" lang="pt-BR" id="dataInicio" onchange="renderizarTabela()">
+                        <span>até</span>
+                        <input type="date" lang="pt-BR" id="dataFim" onchange="renderizarTabela()">
+                    </div>
                     <button class="btn btn-sm" onclick="filtrarMesAtual()">📅 Mês Atual</button>
                     <button class="btn btn-sm" style="background: #2563eb;" onclick="filtrarStatusC()">⭐ Status (C)</button>
                     <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
@@ -713,7 +768,7 @@
                     <button class="btn btn-sm btn-pendente" id="btnSemPagamentoProg" onclick="filtrarSemPagamentoProgramado()">⏳ Sem Pgto</button>
                     <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
                 `;
-            } else if (abaAtual === 'Mensal') {
+            } else {
                 resumoBar.innerHTML = `
                     <div class="resumo-cards-left">
                         <div class="resumo-card"><span class="card-title">Qtd. Registros</span><span class="card-value" id="resumoQtd">0</span></div>
@@ -752,6 +807,17 @@
                     <button class="btn-outline btn btn-sm" onclick="removerTodosFiltros()">✕ Limpar Filtros</button>
                 `;
             }
+        }
+
+        function converterDataBRparaDateObj(strData) {
+            if (!strData || strData.length !== 10) return null;
+            const partes = strData.split('/');
+            if (partes.length !== 3) return null;
+            const dia = parseInt(partes[0], 10);
+            const mes = parseInt(partes[1], 10) - 1;
+            const ano = parseInt(partes[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(ano)) return null;
+            return new Date(ano, mes, dia);
         }
 
         async function removerCPassados() {
@@ -854,9 +920,7 @@
             const statusEl = document.getElementById('statusNuvem');
             statusEl.innerText = "Sincronizando...";
             try {
-                // Sempre puxa os dados base da aba "Dia-a-dia" para os gráficos ou tabelas
-                const abaBusca = (abaAtual === 'Graficos') ? 'Dia-a-dia' : abaAtual;
-                const resp = await fetch(`${WEB_APP_URL}?aba=${encodeURIComponent(abaBusca)}`);
+                const resp = await fetch(`${WEB_APP_URL}?aba=${encodeURIComponent(abaAtual)}`);
                 dadosBrutos = await resp.json();
 
                 if (dadosBrutos.erro) {
@@ -866,25 +930,29 @@
                 }
 
                 if (!dadosBrutos || dadosBrutos.length === 0) {
-                    if (abaAtual !== 'Graficos') {
+                    if (abaAtual !== 'Gráficos') {
                         document.getElementById('tableBody').innerHTML = `<tr><td colspan="100%">Planilha vazia.</td></tr>`;
                     }
+                    statusEl.innerText = "Online";
                     return;
                 }
 
-                if (abaAtual === 'Dia-a-dia') {
+                if (abaAtual === 'Gráficos') {
+                    popularFiltrosGraficos();
+                    filtrarMesAtualGraficos();
+                } else if (abaAtual === 'Dia-a-dia') {
                     popularFiltrosCabecalho();
                     preencherOpcoesFormularioModalDiaADia();
+                    construirFormularioModalDinamico();
                     renderizarTabela();
                 } else if (abaAtual === 'Programado') {
                     popularFiltrosProgramado();
+                    construirFormularioModalDinamico();
                     renderizarTabela();
-                } else if (abaAtual === 'Mensal') {
+                } else {
                     popularFiltrosMensal();
+                    construirFormularioModalDinamico();
                     renderizarTabela();
-                } else if (abaAtual === 'Graficos') {
-                    popularFiltrosGrafico();
-                    renderizarGraficos();
                 }
                 
                 statusEl.innerText = "Online";
@@ -894,39 +962,83 @@
             }
         }
 
-        function popularFiltrosGrafico() {
-            const catSet = new Set(), tipoSet = new Set();
+        // ==================== LÓGICA DA ABA GRÁFICOS ====================
+
+        function popularFiltrosGraficos() {
+            const statusSet = new Set();
+            let temStatusVazio = false;
+
             dadosBrutos.slice(1).forEach(row => {
-                if (row[1]) catSet.add(row[1].toString().trim());
-                if (row[4]) tipoSet.add(row[4].toString().trim());
+                const valStatus = row[5];
+                if (valStatus !== null && valStatus !== undefined && valStatus.toString().trim() !== '') {
+                    statusSet.add(valStatus.toString().trim());
+                } else {
+                    temStatusVazio = true;
+                }
             });
-            preencherSelectFiltro('filtroGraficoCategoria', catSet, 'Todas Categorias');
-            preencherSelectFiltro('filtroGraficoTipo', tipoSet, 'Todos Tipos');
+
+            const selectStatus = document.getElementById('filtroStatusGrafico');
+            if (selectStatus) {
+                selectStatus.innerHTML = `<option value="">Todos Status</option>`;
+                if (temStatusVazio) {
+                    const optVazio = document.createElement('option');
+                    optVazio.value = "VAZIO_VAL";
+                    optVazio.innerText = "(Em branco)";
+                    selectStatus.appendChild(optVazio);
+                }
+                Array.from(statusSet).sort().forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.innerText = item;
+                    selectStatus.appendChild(opt);
+                });
+            }
         }
 
-        function filtrarGraficoMesAtual() {
+        function filtrarMesAtualGraficos() {
             const agora = new Date();
             const ano = agora.getFullYear();
             const mes = String(agora.getMonth() + 1).padStart(2, '0');
             const ultimoDia = new Date(ano, agora.getMonth() + 1, 0).getDate();
-            document.getElementById('filtroGraficoInicio').value = `${ano}-${mes}-01`;
-            document.getElementById('filtroGraficoFim').value = `${ano}-${mes}-${ultimoDia}`;
-            renderizarGraficos();
+            
+            document.getElementById('dataInicioGrafico').value = `${ano}-${mes}-01`;
+            document.getElementById('dataFimGrafico').value = `${ano}-${mes}-${String(ultimoDia).padStart(2, '0')}`;
+            atualizarGraficos();
         }
 
-        function removerFiltrosGrafico() {
-            document.getElementById('filtroGraficoCategoria').value = '';
-            document.getElementById('filtroGraficoTipo').value = '';
-            document.getElementById('filtroGraficoInicio').value = '';
-            document.getElementById('filtroGraficoFim').value = '';
-            renderizarGraficos();
+        function filtrarUltimos30DiasGraficos() {
+            const hoje = new Date();
+            const passado = new Date();
+            passado.setDate(hoje.getDate() - 30);
+
+            const formatISO = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+
+            document.getElementById('dataInicioGrafico').value = formatISO(passado);
+            document.getElementById('dataFimGrafico').value = formatISO(hoje);
+            atualizarGraficos();
         }
 
-        function renderizarGraficos() {
-            const filtroCat = document.getElementById('filtroGraficoCategoria').value;
-            const filtroTip = document.getElementById('filtroGraficoTipo').value;
-            const inputInicio = document.getElementById('filtroGraficoInicio').value;
-            const inputFim = document.getElementById('filtroGraficoFim').value;
+        function removerTodosFiltrosGraficos() {
+            document.getElementById('dataInicioGrafico').value = '';
+            document.getElementById('dataFimGrafico').value = '';
+            const selStat = document.getElementById('filtroStatusGrafico');
+            if (selStat) selStat.value = '';
+            atualizarGraficos();
+        }
+
+        function atualizarGraficos() {
+            if (abaAtual !== 'Gráficos') return;
+
+            const inputInicio = document.getElementById('dataInicioGrafico').value;
+            const inputFim = document.getElementById('dataFimGrafico').value;
+            const selStat = document.getElementById('filtroStatusGrafico');
+            const filtroSta = selStat ? selStat.value : '';
+
             const dInicio = inputInicio ? new Date(inputInicio + "T00:00:00") : null;
             const dFim = inputFim ? new Date(inputFim + "T23:59:59") : null;
 
@@ -936,62 +1048,274 @@
                     if (dtLinha) {
                         if (dInicio && dtLinha < dInicio) return false;
                         if (dFim && dtLinha > dFim) return false;
-                    } else { return false; }
+                    } else {
+                        return false;
+                    }
                 }
-                if (filtroCat && row[1] && row[1].toString().trim() !== filtroCat) return false;
-                if (filtroTip && row[4] && row[4].toString().trim() !== filtroTip) return false;
+                if (filtroSta !== "") {
+                    const valStatusRow = row[5] !== null && row[5] !== undefined ? row[5].toString().trim() : "";
+                    if (filtroSta === "VAZIO_VAL") {
+                        if (valStatusRow !== "") return false;
+                    } else {
+                        if (valStatusRow !== filtroSta) return false;
+                    }
+                }
                 return true;
             });
 
-            let somaTotalGeral = 0;
-            let mapCategoria = {};
-            let mapTipo = {};
+            let somaTotal = 0;
+            let mapDatas = {};
+            let mapCategorias = {};
+            let listaItens = [];
 
             linhasFiltradas.forEach(row => {
                 const val = converterParaNumero(row[3]);
-                somaTotalGeral += val;
+                somaTotal += val;
 
-                const cat = (row[1] || 'Indefinido').toString().trim();
-                mapCategoria[cat] = (mapCategoria[cat] || 0) + val;
+                const dtObj = parseDataParaDateObj(row[0]);
+                const dataFormatada = dtObj ? formatarDataExibicao(row[0]) : 'Sem Data';
+                const timestamp = dtObj ? dtObj.getTime() : 0;
 
-                const tip = (row[4] || 'Indefinido').toString().trim();
-                mapTipo[tip] = (mapTipo[tip] || 0) + val;
+                if (dtObj) {
+                    if (!mapDatas[timestamp]) {
+                        mapDatas[timestamp] = { label: dataFormatada, valor: 0 };
+                    }
+                    mapDatas[timestamp].valor += val;
+                }
+
+                const cat = row[1] && row[1].toString().trim() !== '' ? row[1].toString().trim() : 'Sem Categoria';
+                mapCategorias[cat] = (mapCategorias[cat] || 0) + val;
+
+                listaItens.push({
+                    data: dataFormatada,
+                    categoria: cat,
+                    descritivo: row[2] || 'Sem descrição',
+                    valor: val,
+                    tipo: row[4] || ''
+                });
             });
 
-            document.getElementById('resumoGraficoTotal').innerText = formatarMoedaTabela(somaTotalGeral);
-            document.getElementById('resumoGraficoQtd').innerText = linhasFiltradas.length;
+            const qtd = linhasFiltradas.length;
+            const diasUnicos = Object.keys(mapDatas).length;
+            const mediaDiaria = diasUnicos > 0 ? somaTotal / diasUnicos : 0;
 
-            montarBarrasGrafico('chartCategoria', mapCategoria, somaTotalGeral);
-            montarBarrasGrafico('chartTipo', mapTipo, somaTotalGeral);
+            let maiorCat = '-';
+            let maiorCatValor = 0;
+            Object.entries(mapCategorias).forEach(([cat, val]) => {
+                if (val > maiorCatValor) {
+                    maiorCatValor = val;
+                    maiorCat = `${cat} (${formatarMoedaTabela(val)})`;
+                }
+            });
+
+            document.getElementById('resumoGraficoTotal').innerText = formatarMoedaTabela(somaTotal);
+            document.getElementById('resumoGraficoQtd').innerText = qtd;
+            document.getElementById('resumoGraficoMediaDiaria').innerText = formatarMoedaTabela(mediaDiaria);
+            document.getElementById('resumoGraficoMaiorCat').innerText = maiorCat;
+
+            renderizarChartEvolucao(mapDatas);
+            renderizarChartCategorias(mapCategorias, somaTotal);
+            renderizarTopGastos(listaItens);
+
+            if (dInicio && dFim && !isNaN(dInicio.getTime()) && !isNaN(dFim.getTime())) {
+                document.getElementById('cardComparativoContainer').style.display = 'flex';
+                renderizarChartComparativoMes(dInicio, dFim, filtroSta);
+            } else {
+                document.getElementById('cardComparativoContainer').style.display = 'none';
+            }
         }
 
-        function montarBarrasGrafico(containerId, mapaDados, totalGeral) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
+        function renderizarChartEvolucao(mapDatas) {
+            const ctx = document.getElementById('chartEvolucaoDiaria').getContext('2d');
+            const timestampsOrdenados = Object.keys(mapDatas).map(Number).sort((a, b) => a - b);
+            const labels = timestampsOrdenados.map(ts => mapDatas[ts].label);
+            const valores = timestampsOrdenados.map(ts => mapDatas[ts].valor);
 
-            const chaves = Object.keys(mapaDados).sort((a, b) => mapaDados[b] - mapaDados[a]);
+            if (chartEvolucao) chartEvolucao.destroy();
 
-            if (chaves.length === 0) {
-                container.innerHTML = `<p style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:15px;">Nenhum dado encontrado para os filtros aplicados.</p>`;
+            chartEvolucao = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Gasto no Dia',
+                        data: valores,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.12)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#059669',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` Total: ${formatarMoedaTabela(context.raw)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (val) => 'R$ ' + val.toLocaleString('pt-BR')
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderizarChartCategorias(mapCategorias, somaTotal) {
+            const ctx = document.getElementById('chartCategorias').getContext('2d');
+            const entradasOrdenadas = Object.entries(mapCategorias).sort((a, b) => b[1] - a[1]);
+            const labels = entradasOrdenadas.map(e => e[0]);
+            const valores = entradasOrdenadas.map(e => e[1]);
+
+            if (chartCat) chartCat.destroy();
+
+            chartCat = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: PALETA_CORES,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const val = context.raw;
+                                    const pct = somaTotal > 0 ? ((val / somaTotal) * 100).toFixed(1) : 0;
+                                    return ` ${context.label}: ${formatarMoedaTabela(val)} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderizarChartComparativoMes(dInicio, dFim, filtroSta) {
+            const diffTime = Math.abs(dFim - dInicio);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+            const dAnteriorFim = new Date(dInicio);
+            dAnteriorFim.setDate(dAnteriorFim.getDate() - 1);
+
+            const dAnteriorInicio = new Date(dAnteriorFim);
+            dAnteriorInicio.setDate(dAnteriorInicio.getDate() - diffDays + 1);
+
+            const labelAnterior = `${dAnteriorInicio.toLocaleDateString('pt-BR')} a ${dAnteriorFim.toLocaleDateString('pt-BR')}`;
+
+            let totalAtual = 0;
+            let totalAnterior = 0;
+
+            dadosBrutos.slice(1).forEach(row => {
+                const dtLinha = parseDataParaDateObj(row[0]);
+                if (!dtLinha) return;
+
+                if (filtroSta !== "") {
+                    const valStatusRow = row[5] !== null && row[5] !== undefined ? row[5].toString().trim() : "";
+                    if (filtroSta === "VAZIO_VAL") {
+                        if (valStatusRow !== "") return;
+                    } else {
+                        if (valStatusRow !== filtroSta) return;
+                    }
+                }
+
+                const val = converterParaNumero(row[3]);
+                if (dtLinha >= dInicio && dtLinha <= dFim) {
+                    totalAtual += val;
+                } else if (dtLinha >= dAnteriorInicio && dtLinha <= dAnteriorFim) {
+                    totalAnterior += val;
+                }
+            });
+
+            document.getElementById('subtituloComparativo').innerText = `Comparado com: ${labelAnterior}`;
+
+            const ctx = document.getElementById('chartComparativoMes').getContext('2d');
+            if (chartComp) chartComp.destroy();
+
+            chartComp = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Período Anterior', 'Período Selecionado'],
+                    datasets: [{
+                        label: 'Total Gasto',
+                        data: [totalAnterior, totalAtual],
+                        backgroundColor: ['#94a3b8', '#059669'],
+                        borderRadius: 6,
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` Total: ${formatarMoedaTabela(context.raw)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: (val) => 'R$ ' + val.toLocaleString('pt-BR') },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderizarTopGastos(listaItens) {
+            const container = document.getElementById('listaTopGastos');
+            const top5 = listaItens.sort((a, b) => b.valor - a.valor).slice(0, 5);
+
+            if (top5.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding:20px;">Nenhum lançamento no período selecionado.</div>`;
                 return;
             }
 
-            container.innerHTML = chaves.map(chave => {
-                const valor = mapaDados[chave];
-                const percentual = totalGeral > 0 ? Math.min(100, Math.max(2, (valor / totalGeral) * 100)) : 0;
-                return `
-                    <div class="chart-bar-row">
-                        <div class="chart-bar-info">
-                            <span>${chave}</span>
-                            <span>${formatarMoedaTabela(valor)} (${percentual.toFixed(1)}%)</span>
-                        </div>
-                        <div class="chart-bar-track">
-                            <div class="chart-bar-fill" style="width: ${percentual}%;"></div>
-                        </div>
+            container.innerHTML = top5.map((item, index) => `
+                <div class="top-gasto-item">
+                    <div class="top-gasto-info">
+                        <span class="top-gasto-desc">${index + 1}. ${item.descritivo}</span>
+                        <span class="top-gasto-meta">${item.data} • ${item.categoria} ${item.tipo ? '(' + item.tipo + ')' : ''}</span>
                     </div>
-                `;
-            }).join('');
+                    <span class="top-gasto-valor">${formatarMoedaTabela(item.valor)}</span>
+                </div>
+            `).join('');
         }
+
+        // ==================== FUNÇÕES ORIGINAIS DAS DEMAIS ABAS ====================
 
         function popularFiltrosProgramado() {
             const selectTipo = document.getElementById('filtroTipoProgramado');
@@ -1192,7 +1516,7 @@
             const mes = String(agora.getMonth() + 1).padStart(2, '0');
             const ultimoDia = new Date(ano, agora.getMonth() + 1, 0).getDate();
             document.getElementById('dataInicio').value = `${ano}-${mes}-01`;
-            document.getElementById('dataFim').value = `${ano}-${mes}-${ultimoDia}`;
+            document.getElementById('dataFim').value = `${ano}-${mes}-${String(ultimoDia).padStart(2, '0')}`;
             renderizarTabela();
         }
 
@@ -1264,7 +1588,7 @@
             if (abaAtual === 'Dia-a-dia') {
                 container.className = "form-grid";
                 container.innerHTML = `
-                    <div class="form-group"><label>Data</label><input type="date" id="campo_col_0" required></div>
+                    <div class="form-group"><label>Data</label><input type="date" lang="pt-BR" id="campo_col_0" required></div>
                     <div class="form-group"><label>Categoria</label><select id="campo_col_1" required><option value="">Selecione...</option></select></div>
                     <div class="form-group full-width"><label>Descritivo</label><input type="text" id="campo_col_2" placeholder="Digite a descrição..." required></div>
                     <div class="form-group"><label>Valor (R$)</label><input type="text" id="campo_col_3" placeholder="Ex: 150,00" required></div>
@@ -1360,7 +1684,7 @@
                         return `
                             <div class="form-group">
                                 <label>${col}</label>
-                                <input type="${isDate ? 'date' : 'text'}" id="campo_col_${idx}" placeholder="Digite ${col}...">
+                                <input type="${isDate ? 'date' : 'text'}" ${isDate ? 'lang="pt-BR"' : ''} id="campo_col_${idx}" placeholder="Digite ${col}...">
                             </div>
                         `;
                     }
@@ -1371,8 +1695,6 @@
         }
 
         function renderizarTabela() {
-            if (abaAtual === 'Graficos') return;
-
             const tbody = document.getElementById('tableBody');
             const thead = document.getElementById('tableHeader');
             const colGroup = document.getElementById('tableColGroup');
